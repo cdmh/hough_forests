@@ -1,0 +1,23 @@
+This directory contains the trained trees and config files for detection for the datasets:
+
+TUD Pedestrian
+http://www.mis.informatik.tu-darmstadt.de/People/micha/tracking-by-detection 
+
+Horses Multi-Scale
+http://jamie.shotton.org/work/data.html
+
+Remarks: 
+
+- The original trees were stored in another format. I have converted the old trees to the new 'treetable' format. The new implementation should give the same results but I haven't tested it on the complete data. 
+
+- The trees and config files for the INRIA dataset and the UIUC car dataset are not provided since...
+
+  ...the INRIA dataset requires the construction of an image pyramid instead of a fixed number of scales. This implementation only supports a fixed number of scales for all images.
+
+  ...the trees for the UIUC car dataset were trained on only three features (intensity, absolute values of first order derivatives). This implementation works only with the 32 feature channels that are described in the paper.
+
+- For detection, the space needs to be smoothed and the maxima detected (or using mean shift). 
+This is not part of the source code.
+
+Juergen Gall, BIWI, ETH Zurich
+gall@vision.ee.ethz.ch

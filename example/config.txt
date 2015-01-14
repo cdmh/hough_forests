@@ -1,0 +1,39 @@
+# Path to trees + prefix 'treetable'
+/scratch/tmp/forest/example/trees/treetable
+# Number of trees
+10
+# Patch width
+16
+# Patch height
+16
+# Path to images
+/scratch/tmp/forest/example/testimages
+# File with names of images
+/scratch/tmp/forest/example/test.txt
+# Extract features
+1
+# Scales (Number of scales - Scales)
+3 0.5 1 2
+# Ratios (Number of ratios - ratio)
+1 1
+# Output path
+/scratch/tmp/forest/example/detect
+# Scale factor for output image (default: 128)
+50
+# Path to positive examples
+/scratch/tmp/forest/example/trainimages
+# File with postive examples
+/scratch/tmp/forest/example/train_pos.txt
+# Subset of positive images -1: all images
+-1
+# Sample patches from pos. examples
+50
+# Path to negative examples
+/scratch/tmp/forest/example/trainimages
+# File with negative examples
+/scratch/tmp/forest/example/train_neg.txt
+# Subset of negative images -1: all images
+-1
+# Sample patches from neg. examples
+50
+
