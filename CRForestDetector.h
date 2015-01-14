@@ -17,7 +17,7 @@ public:
 	void detectPyramid(IplImage *img, std::vector<std::vector<IplImage*> >& imgDetect, std::vector<float>& ratios);
 
 	// Get/Set functions
-	unsigned int GetNumCenter() const {return crForest->GetNumCenter();}
+	size_t GetNumCenter() const {return crForest->GetNumCenter();}
 
 private:
 	void detectColor(IplImage *img, std::vector<IplImage*>& imgDetect, std::vector<float>& ratios);

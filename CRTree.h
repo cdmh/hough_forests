@@ -5,7 +5,9 @@
 
 #pragma once
 
+#ifndef _MSC_VER
 #define sprintf_s sprintf 
+#endif
 
 #include "CRPatch.h"
 #include <iostream>
@@ -39,7 +41,7 @@ class CRTree {
 public:
 	// Constructors
 	CRTree(const char* filename);
-	CRTree(int min_s, int max_d, int cp, CvRNG* pRNG) : min_samples(min_s), max_depth(max_d), num_leaf(0), num_cp(cp), cvRNG(pRNG) {
+	CRTree(int min_s, int max_d, size_t cp, CvRNG* pRNG) : min_samples(min_s), max_depth(max_d), num_leaf(0), num_cp(cp), cvRNG(pRNG) {
 		num_nodes = (int)pow(2.0,int(max_depth+1))-1;
 		// num_nodes x 7 matrix as vector
 		treetable = new int[num_nodes * 7];
@@ -51,7 +53,7 @@ public:
 
 	// Set/Get functions
 	unsigned int GetDepth() const {return max_depth;}
-	unsigned int GetNumCenter() const {return num_cp;}
+	size_t       GetNumCenter() const {return num_cp;}
 
 	// Regression
 	const LeafNode* regression(uchar** ptFCh, int stepImg) const;
@@ -72,7 +74,7 @@ private:
 	void grow(const std::vector<std::vector<const PatchFeature*> >& TrainSet, int node, unsigned int depth, int samples, float pnratio);
 	void makeLeaf(const std::vector<std::vector<const PatchFeature*> >& TrainSet, float pnratio, int node);
 	bool optimizeTest(std::vector<std::vector<const PatchFeature*> >& SetA, std::vector<std::vector<const PatchFeature*> >& SetB, const std::vector<std::vector<const PatchFeature*> >& TrainSet, int* test, unsigned int iter, unsigned int mode);
-	void generateTest(int* test, unsigned int max_w, unsigned int max_h, unsigned int max_c);
+	void generateTest(int* test, size_t max_w, size_t max_h, size_t max_c);
 	void evaluateTest(std::vector<std::vector<IntIndex> >& valSet, const int* test, const std::vector<std::vector<const PatchFeature*> >& TrainSet);
 	void split(std::vector<std::vector<const PatchFeature*> >& SetA, std::vector<std::vector<const PatchFeature*> >& SetB, const std::vector<std::vector<const PatchFeature*> >& TrainSet, const std::vector<std::vector<IntIndex> >& valSet, int t);
 	double measureSet(const std::vector<std::vector<const PatchFeature*> >& SetA, const std::vector<std::vector<const PatchFeature*> >& SetB, unsigned int mode) {
@@ -103,7 +105,7 @@ private:
 	unsigned int num_leaf;
 
 	// number of center points per patch
-	unsigned int num_cp;
+	size_t num_cp;
 
 	//leafs as vector
 	LeafNode* leaf;
@@ -141,7 +143,7 @@ inline const LeafNode* CRTree::regression(uchar** ptFCh, int stepImg) const {
 	return &leaf[pnode[0]];
 }
 
-inline void CRTree::generateTest(int* test, unsigned int max_w, unsigned int max_h, unsigned int max_c) {
+inline void CRTree::generateTest(int* test, size_t max_w, size_t max_h, size_t max_c) {
 	test[0] = cvRandInt( cvRNG ) % max_w;
 	test[1] = cvRandInt( cvRNG ) % max_h;
 	test[2] = cvRandInt( cvRNG ) % max_w;

@@ -22,9 +22,9 @@ public:
 
 	// Set/Get functions
 	void SetTrees(int n) {vTrees.resize(n);}
-	int GetSize() const {return vTrees.size();}
+	size_t GetSize() const {return vTrees.size();}
 	unsigned int GetDepth() const {return vTrees[0]->GetDepth();}
-	unsigned int GetNumCenter() const {return vTrees[0]->GetNumCenter();}
+	size_t       GetNumCenter() const {return vTrees[0]->GetNumCenter();}
 	
 	// Regression 
 	void regression(std::vector<const LeafNode*>& result, uchar** ptFCh, int stepImg) const;
@@ -50,7 +50,7 @@ inline void CRForest::regression(std::vector<const LeafNode*>& result, uchar** p
 
 //Training
 inline void CRForest::trainForest(int min_s, int max_d, CvRNG* pRNG, const CRPatch& TrData, int samples) {
-	for(int i=0; i < (int)vTrees.size(); ++i) {
+	for(size_t i=0; i < vTrees.size(); ++i) {
 		vTrees[i] = new CRTree(min_s, max_d, TrData.vLPatches[1][0].center.size(), pRNG);
 		vTrees[i]->growTree(TrData, samples);
 	}

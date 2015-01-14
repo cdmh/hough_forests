@@ -127,7 +127,7 @@ bool CRTree::saveTree(const char* filename) const {
 // Start grow tree
 void CRTree::growTree(const CRPatch& TrData, int samples) {
 	// Get ratio positive patches/negative patches
-	int pos = 0;
+	size_t pos = 0;
 	vector<vector<const PatchFeature*> > TrainSet( TrData.vLPatches.size() );
 	for(unsigned int l=0; l<TrainSet.size(); ++l) {
 		TrainSet[l].resize(TrData.vLPatches[l].size());

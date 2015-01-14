@@ -27,7 +27,7 @@ void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect* b
 		cvRandArr( cvRNG, locations, CV_RAND_UNI, cvScalar(box->x,box->y,0,0), cvScalar(box->x+box->width-width,box->y+box->height-height,0,0) );
 
 	// reserve memory
-	unsigned int offset = vLPatches[label].size();
+	size_t offset = vLPatches[label].size();
 	vLPatches[label].reserve(offset+n);
 	for(unsigned int i=0; i<n; ++i) {
 		CvPoint pt = *(CvPoint*)cvPtr1D( locations, i, 0 );
