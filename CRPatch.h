@@ -54,9 +54,11 @@ public:
 	static void minfilt(IplImage *src, IplImage *dst, unsigned int width);
 
 	std::vector<std::vector<PatchFeature> > vLPatches;
+
+public:
+	int const width;
+	int const height;
 private:
 	CvRNG *cvRNG;
-	int width;
-	int height;
 };
 
