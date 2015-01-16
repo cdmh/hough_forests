@@ -10,7 +10,7 @@
 
 using namespace std;
 
-void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect* box, std::vector<CvPoint>* vCenter) {
+void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect const * const box, std::vector<CvPoint>* vCenter) {
 	// extract features
 	vector<IplImage*> vImg;
 	extractFeatureChannels(img, vImg);

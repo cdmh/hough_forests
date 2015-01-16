@@ -10,7 +10,7 @@
 using namespace std;
 
 
-void CRForestDetector::detectColor(IplImage *img, vector<IplImage* >& imgDetect, std::vector<float>& ratios) {
+void CRForestDetector::detectColor(IplImage *img, vector<IplImage* >& imgDetect, std::vector<float> const & ratios) {
 
 	// extract features
 	vector<IplImage*> vImg;
@@ -107,7 +107,7 @@ void CRForestDetector::detectColor(IplImage *img, vector<IplImage* >& imgDetect,
 
 }
 
-void CRForestDetector::detectPyramid(IplImage *img, vector<vector<IplImage*> >& vImgDetect, std::vector<float>& ratios) {	
+void CRForestDetector::detectPyramid(IplImage *img, vector<vector<IplImage*> >& vImgDetect, std::vector<float> const &ratios) {
 
 	if(img->nChannels==1) {
 
