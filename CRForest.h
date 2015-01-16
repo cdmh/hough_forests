@@ -20,6 +20,8 @@ public:
 		vTrees.clear();
 	}
 
+    CRForest(CRForest &) = delete;  // it's not safe to copy a forest
+
 	// Set/Get functions
 	void SetTrees(int n) {vTrees.resize(n);}
 	size_t GetSize() const {return vTrees.size();}
@@ -60,7 +62,7 @@ inline void CRForest::trainForest(int min_s, int max_d, CvRNG* pRNG, const CRPat
 inline void CRForest::saveForest(const char* filename, unsigned int offset) {
 	char buffer[200];
 	for(unsigned int i=0; i<vTrees.size(); ++i) {
-		sprintf_s(buffer,"%s%03d.txt",filename,i+offset);
+		sprintf_s(buffer,"%s%03u.txt",filename,i+offset);
 		vTrees[i]->saveTree(buffer);
 	}
 }
@@ -68,7 +70,7 @@ inline void CRForest::saveForest(const char* filename, unsigned int offset) {
 inline void CRForest::loadForest(const char* filename, int type) {
 	char buffer[200];
 	for(unsigned int i=0; i<vTrees.size(); ++i) {
-		sprintf_s(buffer,"%s%03d.txt",filename,i);
+		sprintf_s(buffer,"%s%03u.txt",filename,i);
 		vTrees[i] = new CRTree(buffer);
 	}
 }
