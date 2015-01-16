@@ -513,7 +513,7 @@ void run_detect() {
 	crForest.loadForest(treepath.c_str());	
 
 	// Init detector
-	CRForestDetector crDetect(&crForest, p_width, p_height);
+	CRForestDetector crDetect(crForest, p_width, p_height);
 
 	// create directory for output
 	string execstr = "mkdir ";

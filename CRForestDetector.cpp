@@ -52,7 +52,7 @@ void CRForestDetector::detectColor(IplImage *img, vector<IplImage* >& imgDetect,
 
 			// regression for a single patch
 			vector<const LeafNode*> result;
-			crForest->regression(result, ptFCh_row, stepImg);
+			crForest_.regression(result, ptFCh_row, stepImg);
 			
 			// vote for all trees (leafs) 
 			for(vector<const LeafNode*>::const_iterator itL = result.begin(); itL!=result.end(); ++itL) {
