@@ -114,7 +114,7 @@ private:
 };
 
 inline const LeafNode* CRTree::regression(uchar** ptFCh, int stepImg) const {
-	// pointer to current node
+	// pointer to current node                                                     
 	const int* pnode = &treetable[0];
 	int node = 0;
 
