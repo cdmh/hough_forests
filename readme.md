@@ -4,8 +4,9 @@ Hough Forests
 This repository contains the source code by Prof. Dr. Juergen Gall, released under the Microsoft Research Shared Source License Agreement
 http://www.iai.uni-bonn.de/~gall/projects/houghforest/data/MSR-SSLA.txt
 
-The source code was downloaded from
-http://www.iai.uni-bonn.de/~gall/projects/houghforest/houghforest.html
+The source code was downloaded from http://www.iai.uni-bonn.de/~gall/projects/houghforest/houghforest.html and is available on the *master* branch of this repository https://github.com/cdmh/hough_forests/tree/master
+
+This develop *branch* contains some modification made by me, including project files for Microsoft Visual Studio 2013.
 
 Original copyright notice folows
 --------------------------------
