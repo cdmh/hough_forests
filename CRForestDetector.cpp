@@ -114,8 +114,6 @@ void CRForestDetector::detectPyramid(IplImage *img, vector<vector<IplImage*> >& 
 		std::cerr << "Gray color images are not supported." << std::endl;
 
 	} else { // color
-
-		cout << "Timer" << endl;
 		int tstart = clock();
 
 		for(int i=0; i<int(vImgDetect.size()); ++i) {
@@ -128,8 +126,7 @@ void CRForestDetector::detectPyramid(IplImage *img, vector<vector<IplImage*> >& 
 			cvReleaseImage(&cLevel);
 		}
 
-		cout << "Time " << (double)(clock() - tstart)/CLOCKS_PER_SEC << " sec" << endl;
-
+		cout << "Detection took: " << (double)(clock() - tstart)/CLOCKS_PER_SEC << " secs" << endl;
 	}
 
 }
