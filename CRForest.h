@@ -35,7 +35,7 @@ public:
 	void trainForest(int min_s, int max_d, CvRNG* pRNG, const CRPatch& TrData, int samples);
 
 	// IO functions
-	void saveForest(const char* filename, unsigned int offset = 0);
+	void saveForest(const char* filename, unsigned int offset = 0, int type = 0);
 	void loadForest(const char* filename, int type = 0);
 	void show(int w, int h) const {vTrees[0]->showLeaves(w,h);}
 
@@ -59,18 +59,41 @@ inline void CRForest::trainForest(int min_s, int max_d, CvRNG* pRNG, const CRPat
 }
 
 // IO Functions
-inline void CRForest::saveForest(const char* filename, unsigned int offset) {
-	char buffer[200];
-	for(unsigned int i=0; i<vTrees.size(); ++i) {
-		sprintf_s(buffer,"%s%03u.txt",filename,i+offset);
-		vTrees[i]->saveTree(buffer);
-	}
+inline void CRForest::saveForest(const char* filename, unsigned int offset, int type) {
+    if (type == 0)
+    {
+	    char buffer[200];
+	    for(unsigned int i=0; i<vTrees.size(); ++i) {
+		    sprintf_s(buffer,"%s%03u.txt",filename,i+offset);
+		    vTrees[i]->saveTree(buffer);
+	    }
+    }
+    else if (type == 1)
+    {
+        // composite forest storage // CDMH
+        std::ofstream out(filename);
+	    for(unsigned int i=0; i<vTrees.size(); ++i) {
+		    vTrees[i]->save(out);
+	    }
+    }
 }
 
-inline void CRForest::loadForest(const char* filename, int type) {
-	char buffer[200];
-	for(unsigned int i=0; i<vTrees.size(); ++i) {
-		sprintf_s(buffer,"%s%03u.txt",filename,i);
-		vTrees[i] = new CRTree(buffer);
-	}
+inline void CRForest::loadForest(const char* filename, int type)
+{
+    if (type == 0)
+    {
+	    char buffer[200];
+	    for(unsigned int i=0; i<vTrees.size(); ++i) {
+		    sprintf_s(buffer,"%s%03u.txt",filename,i);
+		    vTrees[i] = new CRTree(buffer);
+	    }
+    }
+    else if (type == 1)
+    {
+        // composite forest storage // CDMH
+        std::ifstream in(filename);
+	    for(unsigned int i=0; i<vTrees.size(); ++i) {
+		    vTrees[i] = new CRTree(in);
+	    }
+    }
 }

@@ -13,12 +13,26 @@ using namespace std;
 /////////////////////// Constructors /////////////////////////////
 
 // Read tree from file
-CRTree::CRTree(const char* filename) {
+CRTree::CRTree(const char* filename)
+{
 	cout << "Load Tree " << filename << endl;
 
+	ifstream in(filename);
+    if (!load(in))
+        cerr << "Could not read tree: " << filename << endl;
+}
+
+CRTree::CRTree(ifstream &in)
+{
+    load(in);
+}
+
+
+/////////////////////// IO Function /////////////////////////////
+
+bool const CRTree::load(std::ifstream &in) {
 	int dummy;
 
-	ifstream in(filename);
 	if(in.is_open()) {
 		// allocate memory for tree table
 		in >> max_depth;
@@ -61,25 +75,25 @@ CRTree::CRTree(const char* filename) {
 		}
 
 	} else {
-		cerr << "Could not read tree: " << filename << endl;
+		return false;
 	}
 
-	in.close();
-
+    return true;
 }
 
-
-/////////////////////// IO Function /////////////////////////////
-
-bool CRTree::saveTree(const char* filename) const {
+bool CRTree::saveTree(const char* filename) const
+{
 	cout << "Save Tree " << filename << endl;
+    ofstream out(filename);
+    return save(out);
+}
 
+bool const CRTree::save(ofstream &out) const {
 	bool done = false;
 
-	ofstream out(filename);
 	if(out.is_open()) {
 
-		out << max_depth << " " << num_leaf << " " << num_cp << endl;
+		out << max_depth << " " << num_leaf << " " << num_cp << '\n';
 
 		// save tree nodes
 		int* ptT = &treetable[0];
@@ -96,9 +110,9 @@ bool CRTree::saveTree(const char* filename) const {
 			for(unsigned int i=0; i<7; ++i, ++ptT) {
 				out << *ptT << " ";
 			}
-			out << endl;
+			out << '\n';
 		}
-		out << endl;
+		out << '\n';
 
 		// save tree leafs
 		LeafNode* ptLN = &leaf[0];
@@ -110,14 +124,11 @@ bool CRTree::saveTree(const char* filename) const {
 					out << ptLN->vCenter[i][k].x << " " << ptLN->vCenter[i][k].y << " ";
 				}
 			}
-			out << endl;
+			out << '\n';
 		}
-
-		out.close();
 
 		done = true;
 	}
-
 
 	return done;
 }
