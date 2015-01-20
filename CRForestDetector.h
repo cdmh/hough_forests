@@ -20,6 +20,7 @@ public:
 	size_t GetNumCenter() const {return crForest_.GetNumCenter();}
 
 private:
+    CRForestDetector &operator=(CRForestDetector const &) = delete;
 	void detectColor(IplImage *img, std::vector<IplImage*>& imgDetect, std::vector<float> const &ratios);
 
 	CRForest const &crForest_;

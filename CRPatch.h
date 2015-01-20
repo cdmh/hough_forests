@@ -58,6 +58,10 @@ public:
 public:
 	int const width;
 	int const height;
+
+private:
+    CRPatch &operator=(CRPatch const &) = delete;
+
 private:
 	CvRNG *cvRNG;
 };

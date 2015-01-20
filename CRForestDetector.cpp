@@ -21,7 +21,7 @@ void CRForestDetector::detectColor(IplImage *img, vector<IplImage* >& imgDetect,
 		cvSetZero( imgDetect[c] );
 
 	// get pointers to feature channels
-	int stepImg;
+	int stepImg = 0;
 	uchar** ptFCh     = new uchar*[vImg.size()];
 	uchar** ptFCh_row = new uchar*[vImg.size()];
 	for(unsigned int c=0; c<vImg.size(); ++c) {
@@ -30,7 +30,7 @@ void CRForestDetector::detectColor(IplImage *img, vector<IplImage* >& imgDetect,
 	stepImg /= sizeof(ptFCh[0][0]);
 
 	// get pointer to output image
-	int stepDet;
+	int stepDet = 0;
 	float** ptDet = new float*[imgDetect.size()];
 	for(unsigned int c=0; c<imgDetect.size(); ++c)
 		cvGetRawData( imgDetect[c], (uchar**)&(ptDet[c]), &stepDet);
