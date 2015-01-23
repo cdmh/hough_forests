@@ -19,6 +19,11 @@ public:
 	// Get/Set functions
 	size_t GetNumCenter() const {return crForest_.GetNumCenter();}
 
+    void accumulate_votes(CvSize                 const &size,
+                          std::vector<IplImage*>       &imgDetect,
+                          std::vector<IplImage*> const &features,
+                          std::vector<float>     const &ratios);
+
 private:
     CRForestDetector &operator=(CRForestDetector const &) = delete;
 	void detectColor(IplImage *img, std::vector<IplImage*>& imgDetect, std::vector<float> const &ratios);

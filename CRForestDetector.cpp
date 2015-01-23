@@ -5,16 +5,32 @@
 
 #include "CRForestDetector.h"
 #include <vector>
+#include "timer.h"
 
 
 using namespace std;
 
-
-void CRForestDetector::detectColor(IplImage *img, vector<IplImage* >& imgDetect, std::vector<float> const & ratios) {
+void CRForestDetector::detectColor(
+    IplImage                 *img,
+    vector<IplImage*>        &imgDetect,
+    std::vector<float> const &ratios)
+{
+    cdmh::timer t("CRForestDetector::detectColor");
 
 	// extract features
-	vector<IplImage*> vImg;
-	CRPatch::extractFeatureChannels(img, vImg);
+	vector<IplImage*> features;
+	CRPatch::extractFeatureChannels(img, features);
+    accumulate_votes({img->width, img->height}, imgDetect, features, ratios);
+}
+
+
+void CRForestDetector::accumulate_votes(
+    CvSize                 const &size,
+    vector<IplImage*>            &imgDetect,
+    std::vector<IplImage*> const &features,
+    std::vector<float>     const &ratios)
+{
+    cdmh::timer t("CRForestDetector::accumulate_votes");
 
 	// reset output image
 	for(int c=0; c<(int)imgDetect.size(); ++c)
@@ -22,10 +38,10 @@ void CRForestDetector::detectColor(IplImage *img, vector<IplImage* >& imgDetect,
 
 	// get pointers to feature channels
 	int stepImg = 0;
-	uchar** ptFCh     = new uchar*[vImg.size()];
-	uchar** ptFCh_row = new uchar*[vImg.size()];
-	for(unsigned int c=0; c<vImg.size(); ++c) {
-		cvGetRawData( vImg[c], (uchar**)&(ptFCh[c]), &stepImg);
+	uchar** ptFCh     = new uchar*[features.size()];
+	uchar** ptFCh_row = new uchar*[features.size()];
+	for(unsigned int c=0; c<features.size(); ++c) {
+		cvGetRawData( features[c], (uchar**)&(ptFCh[c]), &stepImg);
 	}
 	stepImg /= sizeof(ptFCh[0][0]);
 
@@ -42,13 +58,13 @@ void CRForestDetector::detectColor(IplImage *img, vector<IplImage* >& imgDetect,
 	int x, y, cx, cy; // x,y top left; cx,cy center of patch
 	cy = yoffset; 
 
-	for(y=0; y<img->height-height; ++y, ++cy) {
+	for(y=0; y<size.height-height; ++y, ++cy) {
 		// Get start of row
-		for(unsigned int c=0; c<vImg.size(); ++c)
+		for(unsigned int c=0; c<features.size(); ++c)
 			ptFCh_row[c] = &ptFCh[c][0];
 		cx = xoffset; 
 		
-		for(x=0; x<img->width-width; ++x, ++cx) {					
+		for(x=0; x<size.width-width; ++x, ++cx) {					
 
 			// regression for a single patch
 			vector<const LeafNode*> result;
@@ -58,9 +74,13 @@ void CRForestDetector::detectColor(IplImage *img, vector<IplImage* >& imgDetect,
 			for(vector<const LeafNode*>::const_iterator itL = result.begin(); itL!=result.end(); ++itL) {
 
 				// To speed up the voting, one can vote only for patches 
-			        // with a probability for foreground > 0.5
-			        // 
-				// if((*itL)->pfg>0.5) {
+			    // with a probability for foreground > 0.5
+                // !!! CH This was commented out in the original code, with no
+                //        indication why. It reduces processing from 4m to 20s
+                //        on a debug build, so worth having, and produces a
+                //        good result. I haven't compared the accuracy fully
+                //        yet, though
+				if((*itL)->pfg>0.5) {
 
 					// voting weight for leaf 
 					float w = (*itL)->pfg / float( (*itL)->vCenter.size() * result.size() );
@@ -69,26 +89,26 @@ void CRForestDetector::detectColor(IplImage *img, vector<IplImage* >& imgDetect,
 					for(vector<vector<CvPoint> >::const_iterator it = (*itL)->vCenter.begin(); it!=(*itL)->vCenter.end(); ++it) {
 
 						for(int c=0; c<(int)imgDetect.size(); ++c) {
-						  int x = int(cx - (*it)[0].x * ratios[c] + 0.5);
-						  int y = cy-(*it)[0].y;
+						  int const x = int(cx - (*it)[0].x * ratios[c] + 0.5);
+						  int const y = cy-(*it)[0].y;
 						  if(y>=0 && y<imgDetect[c]->height && x>=0 && x<imgDetect[c]->width) {
 						    *(ptDet[c]+x+y*stepDet) += w;
 						  }
 						}
 					}
 
-				 // } // end if
+				} // end if
 
 			}
 
 			// increase pointer - x
-			for(unsigned int c=0; c<vImg.size(); ++c)
+			for(unsigned int c=0; c<features.size(); ++c)
 				++ptFCh_row[c];
 
 		} // end for x
 
 		// increase pointer - y
-		for(unsigned int c=0; c<vImg.size(); ++c)
+		for(unsigned int c=0; c<features.size(); ++c)
 			ptFCh[c] += stepImg;
 
 	} // end for y 	
@@ -96,10 +116,6 @@ void CRForestDetector::detectColor(IplImage *img, vector<IplImage* >& imgDetect,
 	// smooth result image
 	for(int c=0; c<(int)imgDetect.size(); ++c)
 		cvSmooth( imgDetect[c], imgDetect[c], CV_GAUSSIAN, 3);
-
-	// release feature channels
-	for(unsigned int c=0; c<vImg.size(); ++c)
-		cvReleaseImage(&vImg[c]);
 	
 	delete[] ptFCh;
 	delete[] ptFCh_row;
@@ -114,7 +130,6 @@ void CRForestDetector::detectPyramid(IplImage *img, vector<vector<IplImage*> >& 
 		std::cerr << "Gray color images are not supported." << std::endl;
 
 	} else { // color
-		int tstart = clock();
 
 		for(int i=0; i<int(vImgDetect.size()); ++i) {
 			IplImage* cLevel = cvCreateImage( cvSize(vImgDetect[i][0]->width,vImgDetect[i][0]->height) , IPL_DEPTH_8U , 3);				
@@ -126,7 +141,6 @@ void CRForestDetector::detectPyramid(IplImage *img, vector<vector<IplImage*> >& 
 			cvReleaseImage(&cLevel);
 		}
 
-		cout << "Detection took: " << (double)(clock() - tstart)/CLOCKS_PER_SEC << " secs" << endl;
 	}
 
 }
