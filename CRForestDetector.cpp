@@ -15,7 +15,9 @@ void CRForestDetector::detectColor(
     vector<IplImage*>        &imgDetect,
     std::vector<float> const &ratios)
 {
+#ifdef CR_PROGRESS
     cdmh::timer t("CRForestDetector::detectColor");
+#endif
 
 	// extract features
 	vector<IplImage*> features;
@@ -30,7 +32,9 @@ void CRForestDetector::accumulate_votes(
     std::vector<IplImage*> const &features,
     std::vector<float>     const &ratios)
 {
+#ifdef CR_PROGRESS
     cdmh::timer t("CRForestDetector::accumulate_votes");
+#endif
 
 	// reset output image
 	for(int c=0; c<(int)imgDetect.size(); ++c)
