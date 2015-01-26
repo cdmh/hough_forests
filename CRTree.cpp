@@ -168,8 +168,10 @@ void CRTree::grow(const vector<vector<const PatchFeature*> >& TrainSet, int node
 		if( float(TrainSet[0].size()) / float(TrainSet[0].size()+TrainSet[1].size()) >= 0.05 && depth < max_depth-2 )
 			measure_mode = cvRandInt( cvRNG ) % 2;
 
+#ifdef CR_PROGRESS
 		cout << "MeasureMode " << depth << " " << measure_mode << " " << TrainSet[0].size() << " " << TrainSet[1].size() << endl;
-	
+#endif
+
 		// Find optimal test
 		if( optimizeTest(SetA, SetB, TrainSet, test, samples, measure_mode) ) {
 	
@@ -182,9 +184,12 @@ void CRTree::grow(const vector<vector<const PatchFeature*> >& TrainSet, int node
 			double countA = 0;
 			double countB = 0;
 			for(unsigned int l=0; l<TrainSet.size(); ++l) {
+#ifdef CR_PROGRESS
 				cout << "Final_Split A/B " << l << " " << SetA[l].size() << " " << SetB[l].size() << endl; 
+#endif
 				countA += SetA[l].size(); countB += SetB[l].size();
 			}
+#ifdef CR_PROGRESS
 			for(unsigned int l=0; l<TrainSet.size(); ++l) {
 				cout << "Final_SplitA: " << SetA[l].size()/countA << "% "; 
 			}
@@ -193,7 +198,7 @@ void CRTree::grow(const vector<vector<const PatchFeature*> >& TrainSet, int node
 				cout << "Final_SplitB: " << SetB[l].size()/countB << "% "; 
 			}
 			cout << endl;
-
+#endif
 			// Go left
 			// If enough patches are left continue growing else stop
 			if(SetA[0].size()+SetA[1].size()>min_samples) {

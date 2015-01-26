@@ -16,7 +16,7 @@ void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect co
 	vector<IplImage*> vImg;
 	extractFeatureChannels(img, vImg);
 
-	CvMat tmp;
+	CvMat tmp;//!!!LEAKS
 	int offx = width/2; 
 	int offy = height/2;
 
@@ -61,7 +61,6 @@ void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect co
 }
 
 void CRPatch::extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg) {
-    cdmh::timer t("CRPatch::extractFeatureChannels on image " + std::to_string(img->width) + "x" + std::to_string(img->height));
 
 	// 32 feature channels
 	// 7+9 channels: L, a, b, |I_x|, |I_y|, |I_xx|, |I_yy|, HOGlike features with 9 bins (weighted orientations 5x5 neighborhood)
