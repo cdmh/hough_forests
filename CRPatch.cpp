@@ -16,7 +16,7 @@ void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect co
 	vector<IplImage*> vImg;
 	extractFeatureChannels(img, vImg);
 
-	CvMat tmp;//!!!LEAKS
+	CvMat tmp;
 	int offx = width/2; 
 	int offy = height/2;
 
@@ -179,8 +179,6 @@ void CRPatch::extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg
 		cvDestroyWindow(buffer);
 	}
 #endif
-
-
 }
 
 void CRPatch::maxfilt(IplImage *src, unsigned int width) {
