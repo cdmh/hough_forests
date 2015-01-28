@@ -11,9 +11,9 @@
 using namespace std;
 
 void CRForestDetector::detectColor(
-    IplImage                 *img,
-    vector<IplImage*>        &imgDetect,
-    std::vector<float> const &ratios)
+    IplImage          * const img,
+    std::vector<float> const &ratios,
+    vector<IplImage*>        &imgDetect) const
 {
 #ifdef CR_PROGRESS
     cdmh::timer t("CRForestDetector::detectColor");
@@ -22,15 +22,15 @@ void CRForestDetector::detectColor(
 	// extract features
 	vector<IplImage*> features;
 	CRPatch::extractFeatureChannels(img, features);
-    accumulate_votes({img->width, img->height}, imgDetect, features, ratios);
+    accumulate_votes({img->width, img->height}, features, ratios, imgDetect);
 }
 
 
 void CRForestDetector::accumulate_votes(
     CvSize                 const &size,
-    vector<IplImage*>            &imgDetect,
     std::vector<IplImage*> const &features,
-    std::vector<float>     const &ratios)
+    std::vector<float>     const &ratios,
+    std::vector<IplImage*>       &imgDetect) const
 {
 #ifdef CR_PROGRESS
     cdmh::timer t("CRForestDetector::accumulate_votes");
@@ -127,7 +127,10 @@ void CRForestDetector::accumulate_votes(
 
 }
 
-void CRForestDetector::detectPyramid(IplImage *img, vector<vector<IplImage*> >& vImgDetect, std::vector<float> const &ratios) {
+void CRForestDetector::detectPyramid(
+    IplImage          * const img,
+    std::vector<float>  const &ratios,
+    vector<vector<IplImage*>> &vImgDetect) const  {
 
 	if(img->nChannels==1) {
 
@@ -140,7 +143,7 @@ void CRForestDetector::detectPyramid(IplImage *img, vector<vector<IplImage*> >& 
 			cvResize( img, cLevel, CV_INTER_LINEAR );	
 
 			// detection
-			detectColor(cLevel,vImgDetect[i],ratios);
+			detectColor(cLevel,ratios,vImgDetect[i]);
 
 			cvReleaseImage(&cLevel);
 		}

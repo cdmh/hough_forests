@@ -11,24 +11,32 @@
 class CRForestDetector {
 public:
 	// Constructor
-	CRForestDetector(CRForest const &RF, int w, int h) : crForest_(RF), width(w), height(h)  {}
+	CRForestDetector(CRForest const &RF, int w, int h) : crForest_(RF), width(w), height(h)
+    {
+    }
 
 	// detect multi scale
-	void detectPyramid(IplImage *img, std::vector<std::vector<IplImage*> >& imgDetect, std::vector<float> const &ratios);
+	void detectPyramid(IplImage                     * const img,
+                       std::vector<float>             const &ratios,
+                       std::vector<std::vector<IplImage*> > &imgDetect) const;
 
-	// Get/Set functions
-	size_t GetNumCenter() const {return crForest_.GetNumCenter();}
+	size_t const GetNumCenter() const
+    {
+        return crForest_.GetNumCenter();
+    }
 
     void accumulate_votes(CvSize                 const &size,
-                          std::vector<IplImage*>       &imgDetect,
                           std::vector<IplImage*> const &features,
-                          std::vector<float>     const &ratios);
+                          std::vector<float>     const &ratios,
+                          std::vector<IplImage*>       &imgDetect) const;
 
 private:
     CRForestDetector &operator=(CRForestDetector const &) = delete;
-	void detectColor(IplImage *img, std::vector<IplImage*>& imgDetect, std::vector<float> const &ratios);
+	void detectColor(IplImage          * const img,
+                     std::vector<float> const &ratios,
+                     std::vector<IplImage *>  &imgDetect) const;
 
 	CRForest const &crForest_;
-	int width;
-	int height;
+	int      const  width;
+	int      const  height;
 };
