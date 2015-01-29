@@ -15,6 +15,9 @@ namespace gall {
 using namespace std;
 
 void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect const * const box, std::vector<CvPoint>* vCenter) {
+    if (width > img->width  ||  height > img->height)
+        return;
+
 	// extract features
 	vector<IplImage*> vImg;
 	extractFeatureChannels(img, vImg);
