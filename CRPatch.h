@@ -55,14 +55,12 @@ public:
 
 	std::vector<std::vector<PatchFeature> > vLPatches;
 
-public:
-	int const width;
-	int const height;
-
 private:
     CRPatch &operator=(CRPatch const &) = delete;
 
 private:
+	int const width;
+	int const height;
 	CvRNG *cvRNG;
 };
 
