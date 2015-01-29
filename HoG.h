@@ -9,6 +9,8 @@
 
 #include <vector>
 
+namespace gall {
+
 class HoG {
 public:
 	HoG();
@@ -56,3 +58,4 @@ inline void HoG::binning(float v, float w, double* desc, int maxb) {
 	desc[bin2] += delta*w;
 }
 
+}   // namespace gall

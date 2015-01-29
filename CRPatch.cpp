@@ -7,7 +7,10 @@
 #include <highgui.h>
 
 #include <deque>
-#include "timer.h"
+
+#define _copysign copysign
+
+namespace gall {
 
 using namespace std;
 
@@ -572,3 +575,5 @@ void CRPatch::maxminfilt(uchar* data, uchar* maxvalues, uchar* minvalues, unsign
 	minvalues[size-d] = data[minfifo.size()>0 ? minfifo.front():size-step];
  
 }
+
+}   // namespace gall

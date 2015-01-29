@@ -9,6 +9,8 @@
 
 #include <vector>
 
+namespace gall {
+
 class CRForest {
 public:
 	// Constructors
@@ -97,3 +99,5 @@ inline void CRForest::loadForest(const char* filename, int type)
 	    }
     }
 }
+
+}   // namespace gall

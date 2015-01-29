@@ -67,6 +67,8 @@
 
 #include "CRForestDetector.h"
 
+namespace gall {
+
 using namespace std;
 
 // Path to trees
@@ -413,7 +415,7 @@ void detect(CRForestDetector& crDetect) {
 		}
 
 		// Detection for all scales
-		crDetect.detectPyramid(img, vImgDetect, ratios);
+		crDetect.detectPyramid(img, ratios, vImgDetect);
 
 		// Store result
 		for(unsigned int k=0;k<vImgDetect.size(); ++k) {
@@ -556,9 +558,13 @@ void run_train() {
 
 }
 
+}   // namespace gall
+
 int main(int argc, char* argv[])
 {
 	int mode = 1;
+
+    using namespace gall;
 
 	// Check argument
 	if(argc<2) {

@@ -5,8 +5,6 @@
 
 #pragma once
 
-#define _copysign copysign
-
 #include <cxcore.h>
 #include <cv.h>
 
@@ -14,6 +12,8 @@
 #include <iostream>
 
 #include "HoG.h"
+
+namespace gall {
 
 // structure for image patch
 struct PatchFeature {
@@ -66,3 +66,4 @@ private:
 	CvRNG *cvRNG;
 };
 
+}   // namespace gall

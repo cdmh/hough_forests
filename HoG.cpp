@@ -7,6 +7,8 @@
 #include <iostream>
 #include "HoG.h"
 
+namespace gall {
+
 using namespace std;
 
 HoG::HoG() {
@@ -90,5 +92,4 @@ void HoG::extractOBin(IplImage *Iorient, IplImage *Imagn, std::vector<IplImage*>
 	delete[] ptOut_row;
 }
 
-
-
+}   // namespace gall

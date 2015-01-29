@@ -5,8 +5,11 @@
 
 #include "CRForestDetector.h"
 #include <vector>
+#ifdef CR_PROGRESS
 #include "timer.h"
+#endif
 
+namespace gall {
 
 using namespace std;
 
@@ -152,10 +155,4 @@ void CRForestDetector::detectPyramid(
 
 }
 
-
-
-
-
-
-
-
+}   // namespace gall

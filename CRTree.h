@@ -13,6 +13,8 @@
 #include <iostream>
 #include <fstream>
 
+namespace gall {
+
 // Auxilary structure
 struct IntIndex {
 	int val;
@@ -153,3 +155,5 @@ inline void CRTree::generateTest(int* test, size_t max_w, size_t max_h, size_t m
 	test[3] = cvRandInt( cvRNG ) % max_h;
 	test[4] = cvRandInt( cvRNG ) % max_c;
 }
+
+}   // namespace gall

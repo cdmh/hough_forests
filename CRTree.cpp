@@ -8,6 +8,8 @@
 #include <highgui.h>
 #include <algorithm>
 
+namespace gall {
+
 using namespace std;
 
 /////////////////////// Constructors /////////////////////////////
@@ -494,3 +496,5 @@ void LeafNode::show(int delay, int width, int height) {
 		}
 	}
 }
+
+}   // namespace gall

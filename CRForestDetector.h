@@ -7,6 +7,7 @@
 
 #include "CRForest.h"
 
+namespace gall {
 
 class CRForestDetector {
 public:
@@ -40,3 +41,5 @@ private:
 	int      const  width;
 	int      const  height;
 };
+
+}   // namespace gall
