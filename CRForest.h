@@ -14,7 +14,7 @@ namespace gall {
 class CRForest {
 public:
 	// Constructors
-	CRForest(int trees = 0) {
+	CRForest(size_t trees = 0) {
 		vTrees.resize(trees);
 	}
 	~CRForest() {
@@ -74,6 +74,8 @@ inline void CRForest::saveForest(const char* filename, unsigned int offset, int 
     {
         // composite forest storage // CDMH
         std::ofstream out(filename, std::ios_base::out | ((type == 2)? std::ios::binary : 0));
+        size_t const size = vTrees.size();
+        out.write((char const *)&size, sizeof(size));
 	    for(unsigned int i=0; i<vTrees.size(); ++i) {
 		    vTrees[i]->save(out, (type == 2));
 	    }
@@ -94,6 +96,9 @@ inline void CRForest::loadForest(const char* filename, int type)
     {
         // composite forest storage // CDMH
         std::ifstream in(filename, std::ios_base::in | ((type == 2)? std::ios::binary : 0));
+        size_t size;
+        in.read((char *)&size, sizeof(size));
+        vTrees.resize(size);
 	    for(unsigned int i=0; i<vTrees.size(); ++i)
 		    vTrees[i] = new CRTree(in, (type == 2));
     }
