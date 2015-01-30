@@ -70,12 +70,12 @@ inline void CRForest::saveForest(const char* filename, unsigned int offset, int 
 		    vTrees[i]->saveTree(buffer);
 	    }
     }
-    else if (type == 1)
+    else if (type == 1  ||  type == 2)
     {
         // composite forest storage // CDMH
-        std::ofstream out(filename);
+        std::ofstream out(filename, std::ios_base::out | ((type == 2)? std::ios::binary : 0));
 	    for(unsigned int i=0; i<vTrees.size(); ++i) {
-		    vTrees[i]->save(out);
+		    vTrees[i]->save(out, (type == 2));
 	    }
     }
 }
@@ -90,13 +90,12 @@ inline void CRForest::loadForest(const char* filename, int type)
 		    vTrees[i] = new CRTree(buffer);
 	    }
     }
-    else if (type == 1)
+    else if (type == 1  ||  type == 2)
     {
         // composite forest storage // CDMH
-        std::ifstream in(filename);
-	    for(unsigned int i=0; i<vTrees.size(); ++i) {
-		    vTrees[i] = new CRTree(in);
-	    }
+        std::ifstream in(filename, std::ios_base::in | ((type == 2)? std::ios::binary : 0));
+	    for(unsigned int i=0; i<vTrees.size(); ++i)
+		    vTrees[i] = new CRTree(in, (type == 2));
     }
 }
 

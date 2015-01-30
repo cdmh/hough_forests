@@ -10,68 +10,107 @@
 
 namespace gall {
 
+namespace detail {
+
+template<typename T>
+bool const read(std::ifstream &in, bool binary, T &value)
+{
+    if (binary)
+        in.read(reinterpret_cast<char *>(&value), sizeof(value));
+    else
+        in >> value;
+    assert(!in.bad()  &&  !in.fail());
+    return !in.bad()  &&  !in.fail();
+}
+
+template<typename T, typename ... Args>
+bool const read(std::ifstream &in, bool binary, T &value, Args& ... args)
+{
+    return read(in, binary, value)  &&  read(in, binary, args...);
+}
+
+template<typename T>
+bool const write(std::ofstream &out, bool binary, T const &value)
+{
+    if (binary)
+        out.write(reinterpret_cast<char const *>(&value), sizeof(value));
+    else
+        out << value << ' ';
+    assert(!out.bad()  &&  !out.fail());
+    return !out.bad()  &&  !out.fail();
+}
+
+template<typename T, typename ... Args>
+bool const write(std::ofstream &out, bool binary, T const &value, Args ... args)
+{
+    return write(out, binary, value)  &&  write(out, binary, args...);
+}
+
+}   // namespace detail
+
 using namespace std;
 
 /////////////////////// Constructors /////////////////////////////
 
 // Read tree from file
-CRTree::CRTree(const char* filename)
+CRTree::CRTree(const char* filename, bool binary)
 {
 	cout << "Load Tree " << filename << endl;
 
-	ifstream in(filename);
+	ifstream in(filename, std::ios_base::in | (binary? std::ios::binary : 0));
     if (!load(in))
         cerr << "Could not read tree: " << filename << endl;
 }
 
-CRTree::CRTree(ifstream &in)
+CRTree::CRTree(ifstream &in, bool binary)
 {
-    load(in);
+    load(in, binary);
 }
 
 
 /////////////////////// IO Function /////////////////////////////
 
-bool const CRTree::load(std::ifstream &in) {
+bool const CRTree::load(std::ifstream &in, bool binary) {
 	int dummy;
 
 	if(in.is_open()) {
+        using detail::read;
+
 		// allocate memory for tree table
-		in >> max_depth;
+		read(in, binary, max_depth);
 		num_nodes = (int)pow(2.0,int(max_depth+1))-1;
 		// num_nodes x 7 matrix as vector
 		treetable = new int[num_nodes * 7];
 		int* ptT = &treetable[0];
 		
 		// allocate memory for leafs
-		in >> num_leaf;
+		read(in, binary, num_leaf);
 		leaf = new LeafNode[num_leaf];
 
 		// number of center points per patch 
-		in >> num_cp;
+		read(in, binary, num_cp);
 
 		// read tree nodes
 		for(unsigned int n=0; n<num_nodes; ++n) {
-			in >> dummy; in >> dummy;
+			read(in, binary, dummy, dummy);
 			for(unsigned int i=0; i<7; ++i, ++ptT) {
-				in >> *ptT;
+				read(in, binary, *ptT);
 			}
 		}
 
 		// read tree leafs
 		LeafNode* ptLN = &leaf[0];
 		for(unsigned int l=0; l<num_leaf; ++l, ++ptLN) {
-			in >> dummy;
-			in >> ptLN->pfg;
+			read(in, binary, dummy, ptLN->pfg);
 			
 			// number of positive patches
-			in >> dummy;
-			ptLN->vCenter.resize(dummy);
-			for(int i=0; i<dummy; ++i) {
+			size_t size;
+            read(in, binary, size);
+			ptLN->vCenter.resize(size);
+			for(size_t i=0; i<size; ++i) {
 				ptLN->vCenter[i].resize(num_cp);
 				for(unsigned int k=0; k<num_cp; ++k) {
-					in >> ptLN->vCenter[i][k].x;
-					in >> ptLN->vCenter[i][k].y;
+					read(in, binary, ptLN->vCenter[i][k].x, ptLN->vCenter[i][k].y);
 				}
 			}
 		}
@@ -83,19 +122,21 @@ bool const CRTree::load(std::ifstream &in) {
     return true;
 }
 
-bool CRTree::saveTree(const char* filename) const
+bool CRTree::saveTree(const char* filename, bool binary) const
 {
 	cout << "Save Tree " << filename << endl;
     ofstream out(filename);
-    return save(out);
+    return save(out, binary);
 }
 
-bool const CRTree::save(ofstream &out) const {
+bool const CRTree::save(ofstream &out, bool binary) const {
 	bool done = false;
 
 	if(out.is_open()) {
+        using detail::write;
 
-		out << max_depth << " " << num_leaf << " " << num_cp << '\n';
+		//out << max_depth << " " << num_leaf << " " << num_cp << '\n';
+        write(out, binary, max_depth, num_leaf, num_cp);
 
 		// save tree nodes
 		int* ptT = &treetable[0];
@@ -108,25 +149,29 @@ bool const CRTree::save(ofstream &out) const {
 				step *= 2;
 			}
 
-			out << n << " " << depth << " ";
+			//out << n << " " << depth << " ";
+            write(out, binary, n, depth);
 			for(unsigned int i=0; i<7; ++i, ++ptT) {
-				out << *ptT << " ";
+				//out << *ptT << " ";
+                write(out, binary, *ptT);
 			}
-			out << '\n';
+			//out << '\n';
 		}
-		out << '\n';
+		//out << '\n';
 
 		// save tree leafs
 		LeafNode* ptLN = &leaf[0];
 		for(unsigned int l=0; l<num_leaf; ++l, ++ptLN) {
-			out << l << " " << ptLN->pfg << " " << ptLN->vCenter.size() << " ";
+			//out << l << " " << ptLN->pfg << " " << ptLN->vCenter.size() << " ";
+            write(out, binary, l, ptLN->pfg, ptLN->vCenter.size());
 			
 			for(unsigned int i=0; i<ptLN->vCenter.size(); ++i) {
 				for(unsigned int k=0; k<ptLN->vCenter[i].size(); ++k) {
-					out << ptLN->vCenter[i][k].x << " " << ptLN->vCenter[i][k].y << " ";
+					//out << ptLN->vCenter[i][k].x << " " << ptLN->vCenter[i][k].y << " ";
+					write(out, binary, ptLN->vCenter[i][k].x, ptLN->vCenter[i][k].y);
 				}
 			}
-			out << '\n';
+			//out << '\n';
 		}
 
 		done = true;

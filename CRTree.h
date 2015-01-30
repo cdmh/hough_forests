@@ -25,7 +25,7 @@ struct IntIndex {
 // Structure for the leafs
 struct LeafNode {
 	// Constructors
-	LeafNode() {}
+	LeafNode() : pfg() {}
 
 	// IO functions
 	void show(int delay, int width, int height); 
@@ -39,11 +39,44 @@ struct LeafNode {
 	std::vector<std::vector<CvPoint> > vCenter;	
 };
 
+inline
+bool const operator==(LeafNode const &first, LeafNode const &second)
+{
+    if (first.pfg != second.pfg)
+        return false;
+
+    if (first.vCenter.size() != second.vCenter.size())
+        return false;
+
+    for (size_t i=0; i<first.vCenter.size(); ++i)
+    {
+        if (first.vCenter[i].size() != second.vCenter[i].size())
+            return false;
+
+        for (size_t j=0; j<first.vCenter[i].size(); ++j)
+        {
+            if (first.vCenter[i][j].x != second.vCenter[i][j].x)
+                return false;
+            else if (first.vCenter[i][j].y != second.vCenter[i][j].y)
+                return false;
+        }
+    }
+
+    return true;
+}
+
+
+inline
+bool const operator!=(LeafNode const &first, LeafNode const &second)
+{
+    return !(first == second);
+}
+
 class CRTree {
 public:
 	// Constructors
-	CRTree(const char* filename);
-    CRTree(std::ifstream &in);
+	CRTree(const char* filename, bool binary=false);
+    CRTree(std::ifstream &in, bool binary);
 	CRTree(int min_s, int max_d, size_t cp, CvRNG* pRNG) : min_samples(min_s), max_depth(max_d), num_leaf(0), num_cp(cp), cvRNG(pRNG) {
 		num_nodes = (int)pow(2.0,int(max_depth+1))-1;
 		// num_nodes x 7 matrix as vector
@@ -65,15 +98,15 @@ public:
 	void growTree(const CRPatch& TrData, int samples);
 
 	// IO functions
-	bool saveTree(const char* filename) const;
-    bool const save(std::ofstream &out) const;
+	bool saveTree(const char* filename, bool binary=false) const;
+    bool const save(std::ofstream &out, bool binary=false) const;
 	void showLeaves(int width, int height) const {
 		for(unsigned int l=0; l<num_leaf; ++l)
 			leaf[l].show(5000, width, height);
 	}
 
 private: 
-    bool const load(std::ifstream &in);
+    bool const load(std::ifstream &in, bool binary=false);
 
 	// Private functions for training
 	void grow(const std::vector<std::vector<const PatchFeature*> >& TrainSet, int node, unsigned int depth, int samples, float pnratio);
@@ -116,7 +149,39 @@ private:
 	LeafNode* leaf;
 
 	CvRNG *cvRNG;
+
+    friend bool const operator==(CRTree const &first, CRTree const &second);
 };
+
+inline
+bool const operator==(CRTree const &first, CRTree const &second)
+{
+	if (first.min_samples != second.min_samples)
+        return false;
+
+	if (first.max_depth != second.max_depth)
+        return false;
+
+	if (first.num_nodes != second.num_nodes)
+        return false;
+
+	if (first.num_leaf != second.num_leaf)
+        return false;
+
+	if (first.num_cp != second.num_cp)
+        return false;
+
+	if (memcmp(first.treetable, second.treetable, sizeof(int) * first.num_nodes * 7) != 0)
+        return false;
+
+    for (unsigned i=0; i<first.num_leaf; ++i)
+    {
+        if (first.leaf[i] != second.leaf[i])
+            return false;
+    }
+
+    return true;
+}
 
 inline const LeafNode* CRTree::regression(uchar** ptFCh, int stepImg) const {
 	// pointer to current node                                                     
