@@ -82,11 +82,11 @@ void CRForestDetector::accumulate_votes(
 
 				// To speed up the voting, one can vote only for patches 
 			    // with a probability for foreground > 0.5
-                // !!! CH This was commented out in the original code, with no
-                //        indication why. It reduces processing from 4m to 20s
-                //        on a debug build, so worth having, and produces a
-                //        good result. I haven't compared the accuracy fully
-                //        yet, though
+                // !!! CH This condition was commented out in the original code,
+                //        with no indication why. It reduces processing from
+                //        4m to 20s on a debug build, so worth having, and
+                //        produces a good result. I haven't compared the
+                //        accuracy fully yet, though
 				if((*itL)->pfg>0.5) {
 
 					// voting weight for leaf 
