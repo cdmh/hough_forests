@@ -40,25 +40,27 @@ void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect co
 		CvPoint pt = *(CvPoint*)cvPtr1D( locations, i, 0 );
 		
 		PatchFeature pf;
-		vLPatches[label].push_back(pf);
 
-		vLPatches[label].back().roi.x = pt.x;  vLPatches[label].back().roi.y = pt.y;  
-		vLPatches[label].back().roi.width = width;  vLPatches[label].back().roi.height = height; 
+		pf.roi.x = pt.x;
+        pf.roi.y = pt.y;
+		pf.roi.width = width;
+        pf.roi.height = height; 
 
 		if(vCenter!=0) {
-			vLPatches[label].back().center.resize(vCenter->size());
+			pf.center.resize(vCenter->size());
 			for(unsigned int c = 0; c<vCenter->size(); ++c) {
-				vLPatches[label].back().center[c].x = pt.x + offx - (*vCenter)[c].x;
-				vLPatches[label].back().center[c].y = pt.y + offy - (*vCenter)[c].y;
+				pf.center[c].x = pt.x + offx - (*vCenter)[c].x;
+				pf.center[c].y = pt.y + offy - (*vCenter)[c].y;
 			}
 		}
 
-		vLPatches[label].back().vPatch.resize(vImg.size());
+		pf.vPatch.resize(vImg.size());
 		for(unsigned int c=0; c<vImg.size(); ++c) {
-			cvGetSubRect( vImg[c], &tmp,  vLPatches[label].back().roi );
-			vLPatches[label].back().vPatch[c] = cvCloneMat(&tmp);
+			cvGetSubRect( vImg[c], &tmp,  pf.roi );
+			pf.vPatch[c] = cvCloneMat(&tmp);
 		}
 
+		vLPatches[label].push_back(pf);
 	}
 
 	cvReleaseMat(&locations);
