@@ -39,7 +39,8 @@ void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect co
 	for(unsigned int i=0; i<n; ++i) {
 		CvPoint pt = *(CvPoint*)cvPtr1D( locations, i, 0 );
 		
-		PatchFeature pf;
+		vLPatches[label].emplace_back();
+		PatchFeature &pf = vLPatches[label].back();
 
 		pf.roi.x = pt.x;
         pf.roi.y = pt.y;
@@ -59,8 +60,6 @@ void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect co
 			cvGetSubRect( vImg[c], &tmp,  pf.roi );
 			pf.vPatch[c] = cvCloneMat(&tmp);
 		}
-
-		vLPatches[label].push_back(pf);
 	}
 
 	cvReleaseMat(&locations);
