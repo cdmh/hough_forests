@@ -95,7 +95,7 @@ public:
 	const LeafNode* regression(uchar** ptFCh, int stepImg) const;
 
 	// Training
-	void growTree(const CRPatch& TrData, int samples);
+	unsigned int growTree(const CRPatch& TrData, int samples);
 
 	// IO functions
 	bool saveTree(const char* filename, bool binary=false) const;
@@ -109,7 +109,7 @@ private:
     bool const load(std::ifstream &in, bool binary=false);
 
 	// Private functions for training
-	void grow(const std::vector<std::vector<const PatchFeature*> >& TrainSet, int node, unsigned int depth, int samples, float pnratio);
+	unsigned int grow(const std::vector<std::vector<const PatchFeature*> >& TrainSet, int node, unsigned int depth, int samples, float pnratio);
 	void makeLeaf(const std::vector<std::vector<const PatchFeature*> >& TrainSet, float pnratio, int node);
 	bool optimizeTest(std::vector<std::vector<const PatchFeature*> >& SetA, std::vector<std::vector<const PatchFeature*> >& SetB, const std::vector<std::vector<const PatchFeature*> >& TrainSet, int* test, unsigned int iter, unsigned int mode);
 	void generateTest(int* test, size_t max_w, size_t max_h, size_t max_c);

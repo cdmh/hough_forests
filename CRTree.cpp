@@ -183,7 +183,7 @@ bool const CRTree::save(ofstream &out, bool binary) const {
 /////////////////////// Training Function /////////////////////////////
 
 // Start grow tree
-void CRTree::growTree(const CRPatch& TrData, int samples) {
+unsigned int CRTree::growTree(const CRPatch& TrData, int samples) {
 	// Get ratio positive patches/negative patches
 	size_t pos = 0;
 	vector<vector<const PatchFeature*> > TrainSet( TrData.vLPatches.size() );
@@ -198,12 +198,13 @@ void CRTree::growTree(const CRPatch& TrData, int samples) {
 	}
 
 	// Grow tree
-	grow(TrainSet, 0, 0, samples, pos / float(TrainSet[0].size()) );
+	return grow(TrainSet, 0, 0, samples, pos / float(TrainSet[0].size()) );
 }
 
 // Called by growTree
-void CRTree::grow(const vector<vector<const PatchFeature*> >& TrainSet, int node, unsigned int depth, int samples, float pnratio) {
+unsigned int CRTree::grow(const vector<vector<const PatchFeature*> >& TrainSet, int node, unsigned int depth, int samples, float pnratio) {
 
+    unsigned new_depth = depth;
 	if(depth<max_depth && TrainSet[1].size()>0) {	
 
 		vector<vector<const PatchFeature*> > SetA;
@@ -249,7 +250,7 @@ void CRTree::grow(const vector<vector<const PatchFeature*> >& TrainSet, int node
 			// Go left
 			// If enough patches are left continue growing else stop
 			if(SetA[0].size()+SetA[1].size()>min_samples) {
-				grow(SetA, 2*node+1, depth+1, samples, pnratio);
+				new_depth = grow(SetA, 2*node+1, depth+1, samples, pnratio);
 			} else {
 				makeLeaf(SetA, pnratio, 2*node+1);
 			}
@@ -257,7 +258,7 @@ void CRTree::grow(const vector<vector<const PatchFeature*> >& TrainSet, int node
 			// Go right
 			// If enough patches are left continue growing else stop
 			if(SetB[0].size()+SetB[1].size()>min_samples) {
-				grow(SetB, 2*node+2, depth+1, samples, pnratio);
+				new_depth = std::max(new_depth, grow(SetB, 2*node+2, depth+1, samples, pnratio));
 			} else {
 				makeLeaf(SetB, pnratio, 2*node+2);
 			}
@@ -275,6 +276,8 @@ void CRTree::grow(const vector<vector<const PatchFeature*> >& TrainSet, int node
 		makeLeaf(TrainSet, pnratio, node);
 	
 	}
+
+    return new_depth;
 }
 
 // Create leaf node from patches 
