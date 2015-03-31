@@ -8,6 +8,7 @@
 #include "CRTree.h"
 
 #include <vector>
+#include <omp.h>
 
 namespace gall {
 
@@ -47,6 +48,8 @@ public:
 
 inline void CRForest::regression(std::vector<const LeafNode*>& result, uchar** ptFCh, int stepImg) const {
 	result.resize( vTrees.size() );
+
+#pragma omp parallel for 
 	for(int i=0; i<(int)vTrees.size(); ++i) {
 		result[i] = vTrees[i]->regression(ptFCh, stepImg);
 	}
@@ -54,9 +57,10 @@ inline void CRForest::regression(std::vector<const LeafNode*>& result, uchar** p
 
 //Training
 inline void CRForest::trainForest(int min_s, int max_d, CvRNG* pRNG, const CRPatch& TrData, int samples) {
-	for(size_t i=0; i < vTrees.size(); ++i) {
+#pragma omp parallel for 
+	for(int i=0; i < (int)vTrees.size(); ++i) {
 		vTrees[i] = new CRTree( min_s, max_d, TrData.vLPatches[1][0].center.size(), pRNG);
-		std::cout << "Tree " << i << " trained to depth: " << vTrees[i]->growTree(TrData, samples) << " (max depth=" << max_d << ")\n";
+		std::cout << "(Thread "<<omp_get_thread_num()<<") Tree " << i << " trained to depth: " << vTrees[i]->growTree(TrData, samples) << " (max depth=" << max_d << ")\n";
 	}
 }
 
