@@ -136,7 +136,7 @@ void CRPatch::extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg
 	  // Magnitude of gradients
 	  for( y = 0; y < size.height; y++, dataX += stepX, dataY += stepY, dataZ += stepZ  )
 	    for( x = 0; x < size.width; x++ ) {
-	      dataZ[x] = (uchar)( sqrt((float)dataX[x]*(float)dataX[x] + (float)dataY[x]*(float)dataY[x]) );
+	      dataZ[x] = (uchar)( hypot(dataX[x], dataY[x]) );
 	    }
 	}
 
