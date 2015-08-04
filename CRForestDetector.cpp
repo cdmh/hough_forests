@@ -13,21 +13,6 @@ namespace gall {
 
 using namespace std;
 
-void CRForestDetector::detectColor(
-    IplImage          * const img,
-    std::vector<float> const &ratios,
-    vector<IplImage*>        &imgDetect) const
-{
-#ifdef CR_PROGRESS
-    cdmh::timer t("CRForestDetector::detectColor");
-#endif
-
-	// extract features
-	vector<IplImage*> features;
-	CRPatch::extractFeatureChannels(img, features);
-    accumulate_votes({img->width, img->height}, features, ratios, imgDetect);
-}
-
 
 void CRForestDetector::accumulate_votes(
     CvSize                 const &size,
@@ -103,9 +88,7 @@ void CRForestDetector::accumulate_votes(
 						        *(ptDet[c] + x + y*stepDet) += w;
 					    }
 					}
-
 				} // end if
-
 			}
 
 			// increase pointer - x
@@ -127,31 +110,6 @@ void CRForestDetector::accumulate_votes(
 	delete[] ptFCh;
 	delete[] ptFCh_row;
 	delete[] ptDet;
-
-}
-
-void CRForestDetector::detectPyramid(
-    IplImage          * const img,
-    std::vector<float>  const &ratios,
-    vector<vector<IplImage*>> &vImgDetect) const  {
-
-	if(img->nChannels==1) {
-
-		std::cerr << "Gray color images are not supported." << std::endl;
-
-	} else { // color
-
-		for(int i=0; i<int(vImgDetect.size()); ++i) {
-			IplImage* cLevel = cvCreateImage( cvSize(vImgDetect[i][0]->width,vImgDetect[i][0]->height) , IPL_DEPTH_8U , 3);				
-			cvResize( img, cLevel, CV_INTER_LINEAR );	
-
-			// detection
-			detectColor(cLevel,ratios,vImgDetect[i]);
-
-			cvReleaseImage(&cLevel);
-		}
-
-	}
 
 }
 

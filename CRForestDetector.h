@@ -16,11 +16,6 @@ public:
     {
     }
 
-	// detect multi scale
-	void detectPyramid(IplImage                     * const img,
-                       std::vector<float>             const &ratios,
-                       std::vector<std::vector<IplImage*> > &imgDetect) const;
-
 	size_t const GetNumCenter() const
     {
         return crForest_.GetNumCenter();
@@ -32,10 +27,8 @@ public:
                           std::vector<IplImage*>       &imgDetect) const;
 
 private:
+    CRForestDetector &operator=(CRForestDetector &&)      = delete;
     CRForestDetector &operator=(CRForestDetector const &) = delete;
-	void detectColor(IplImage          * const img,
-                     std::vector<float> const &ratios,
-                     std::vector<IplImage *>  &imgDetect) const;
 
 	CRForest const &crForest_;
 	int      const  width;
