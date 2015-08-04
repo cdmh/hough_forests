@@ -77,31 +77,31 @@ void CRForestDetector::accumulate_votes(
 			// regression for a single patch
 			crForest_.regression(result, ptFCh_row, stepImg);
 			
-			// vote for all trees (leafs) 
-			for(auto leaf : result) {
+			for (size_t c=0; c<imgDetect.size(); ++c)
+            {
+			    // vote for all trees (leafs) 
+			    for (auto const &leaf : result)
+                {
+				    // To speed up the voting, one can vote only for patches 
+			        // with a probability for foreground > 0.5
+                    // !!! CH This condition was commented out in the original code,
+                    //        with no indication why. It reduces processing from
+                    //        4m to 20s on a debug build, so worth having, and
+                    //        produces a good result. I haven't compared the
+                    //        accuracy fully yet, though
+				    if (leaf->pfg > 0.5)
+                    {
+					    // voting weight for leaf 
+					    float const w = leaf->pfg / float(leaf->vCenter.size() * result.size());
 
-				// To speed up the voting, one can vote only for patches 
-			    // with a probability for foreground > 0.5
-                // !!! CH This condition was commented out in the original code,
-                //        with no indication why. It reduces processing from
-                //        4m to 20s on a debug build, so worth having, and
-                //        produces a good result. I haven't compared the
-                //        accuracy fully yet, though
-				if(leaf->pfg>0.5) {
-
-					// voting weight for leaf 
-					float w = leaf->pfg / float( leaf->vCenter.size() * result.size() );
-
-					// vote for all points stored in the leaf
-					for(vector<vector<CvPoint> >::const_iterator it = leaf->vCenter.begin(); it!=leaf->vCenter.end(); ++it) {
-
-						for(int c=0; c<(int)imgDetect.size(); ++c) {
-						  int const x = int(cx - (*it)[0].x * ratios[c] + 0.5);
-						  int const y = cy-(*it)[0].y;
-						  if(y>=0 && y<imgDetect[c]->height && x>=0 && x<imgDetect[c]->width) {
-						    *(ptDet[c]+x+y*stepDet) += w;
-						  }
-						}
+					    // vote for all points stored in the leaf
+					    for (auto const &centre : leaf->vCenter)
+                        {
+						    int const x = int(cx - centre[0].x * ratios[c] + 0.5);
+						    int const y = cy - centre[0].y;
+						    if (y>=0  &&  x>=0  &&  y<imgDetect[c]->height  &&  x<imgDetect[c]->width)
+						        *(ptDet[c] + x + y*stepDet) += w;
+					    }
 					}
 
 				} // end if
