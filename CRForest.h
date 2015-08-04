@@ -47,7 +47,7 @@ public:
 };
 
 inline void CRForest::regression(std::vector<const LeafNode*>& result, uchar** ptFCh, int stepImg) const {
-	result.resize( vTrees.size() );
+	assert(result.size() == vTrees.size());
 
     #pragma omp parallel for 
 	for(int i=0; i<(int)vTrees.size(); ++i) {

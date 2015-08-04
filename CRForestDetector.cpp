@@ -65,6 +65,7 @@ void CRForestDetector::accumulate_votes(
 	int x, y, cx, cy; // x,y top left; cx,cy center of patch
 	cy = yoffset; 
 
+	vector<const LeafNode*> result(crForest_.GetSize());
 	for(y=0; y<size.height-height; ++y, ++cy) {
 		// Get start of row
 		for(unsigned int c=0; c<features.size(); ++c)
@@ -74,11 +75,10 @@ void CRForestDetector::accumulate_votes(
 		for(x=0; x<size.width-width; ++x, ++cx) {					
 
 			// regression for a single patch
-			vector<const LeafNode*> result;
 			crForest_.regression(result, ptFCh_row, stepImg);
 			
 			// vote for all trees (leafs) 
-			for(vector<const LeafNode*>::const_iterator itL = result.begin(); itL!=result.end(); ++itL) {
+			for(auto leaf : result) {
 
 				// To speed up the voting, one can vote only for patches 
 			    // with a probability for foreground > 0.5
@@ -87,13 +87,13 @@ void CRForestDetector::accumulate_votes(
                 //        4m to 20s on a debug build, so worth having, and
                 //        produces a good result. I haven't compared the
                 //        accuracy fully yet, though
-				if((*itL)->pfg>0.5) {
+				if(leaf->pfg>0.5) {
 
 					// voting weight for leaf 
-					float w = (*itL)->pfg / float( (*itL)->vCenter.size() * result.size() );
+					float w = leaf->pfg / float( leaf->vCenter.size() * result.size() );
 
 					// vote for all points stored in the leaf
-					for(vector<vector<CvPoint> >::const_iterator it = (*itL)->vCenter.begin(); it!=(*itL)->vCenter.end(); ++it) {
+					for(vector<vector<CvPoint> >::const_iterator it = leaf->vCenter.begin(); it!=leaf->vCenter.end(); ++it) {
 
 						for(int c=0; c<(int)imgDetect.size(); ++c) {
 						  int const x = int(cx - (*it)[0].x * ratios[c] + 0.5);
