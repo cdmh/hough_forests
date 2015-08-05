@@ -44,21 +44,19 @@ void CRForestDetector::accumulate_votes(
 		cvGetRawData( imgDetect[c], (uchar**)&(ptDet[c]), &stepDet);
 	stepDet /= sizeof(ptDet[0][0]);
 
-	int xoffset = width/2;
-	int yoffset = height/2;
+	int const xoffset = width/2;
+	int const yoffset = height/2;
 	
-	int x, y, cx, cy; // x,y top left; cx,cy center of patch
-	cy = yoffset; 
-
+    // cx,cy center of patch
 	vector<const LeafNode*> result(crForest_.GetSize());
-	for(y=0; y<size.height-height; ++y, ++cy) {
+	for (int cy=yoffset; cy<size.height+yoffset-height; ++cy)
+    {
 		// Get start of row
-		for(unsigned int c=0; c<features.size(); ++c)
+		for (unsigned int c=0; c<features.size(); ++c)
 			ptFCh_row[c] = &ptFCh[c][0];
-		cx = xoffset; 
-		
-		for(x=0; x<size.width-width; ++x, ++cx) {					
 
+		for(int cx=xoffset; cx<size.width+xoffset-width; ++cx)
+        {
 			// regression for a single patch
 			crForest_.regression(result, ptFCh_row, stepImg);
 			
