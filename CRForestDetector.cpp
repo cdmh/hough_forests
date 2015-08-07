@@ -14,8 +14,10 @@ namespace gall {
 using namespace std;
 
 
-void CRForestDetector::accumulate_votes(
+std::vector<std::vector<std::map<int, float>>>
+CRForestDetector::accumulate_votes(
     CvSize                 const &size,
+    cv::Rect               const &roi,
     std::vector<IplImage*> const &features,
     std::vector<float>     const &ratios,
     std::vector<IplImage*>       &imgDetect) const
@@ -24,91 +26,101 @@ void CRForestDetector::accumulate_votes(
     cdmh::timer t("CRForestDetector::accumulate_votes");
 #endif
 
-	// reset output image
-	for(int c=0; c<(int)imgDetect.size(); ++c)
-		cvSetZero( imgDetect[c] );
+    // reset output image
+    for(int c=0; c<(int)imgDetect.size(); ++c)
+        cvSetZero( imgDetect[c] );
 
-	// get pointers to feature channels
-	int stepImg = 0;
-	uchar** ptFCh     = new uchar*[features.size()];
-	uchar** ptFCh_row = new uchar*[features.size()];
+    // get pointers to feature channels
+    int stepImg = 0;
+    uchar** ptFCh     = new uchar*[features.size()];
+    uchar** ptFCh_row = new uchar*[features.size()];
 	for(unsigned int c=0; c<features.size(); ++c) {
-		cvGetRawData( features[c], (uchar**)&(ptFCh[c]), &stepImg);
+        cvGetRawData( features[c], (uchar**)&(ptFCh[c]), &stepImg);
 	}
-	stepImg /= sizeof(ptFCh[0][0]);
+    stepImg /= sizeof(ptFCh[0][0]);
 
-	// get pointer to output image
-	int stepDet = 0;
-	float** ptDet = new float*[imgDetect.size()];
-	for(unsigned int c=0; c<imgDetect.size(); ++c)
-		cvGetRawData( imgDetect[c], (uchar**)&(ptDet[c]), &stepDet);
-	stepDet /= sizeof(ptDet[0][0]);
+    // get pointer to output image
+    int stepDet = 0;
+    float** ptDet = new float*[imgDetect.size()];
+    for(unsigned int c=0; c<imgDetect.size(); ++c)
+        cvGetRawData( imgDetect[c], (uchar**)&(ptDet[c]), &stepDet);
+    stepDet /= sizeof(ptDet[0][0]);
 
-	int const xoffset = width/2;
-	int const yoffset = height/2;
-	
+    int const xoffset = width/2;
+    int const yoffset = height/2;
+
+    // data structure to record the leaf contributors to each pixel
+    std::vector<std::vector<std::map<int, float>>>
+    contributor_map(size.height, std::vector<std::map<int, float>>(size.width));
+
     // cx,cy center of patch
 	vector<const LeafNode*> result(crForest_.GetSize());
-	for (int cy=yoffset; cy<size.height+yoffset-height; ++cy)
+    for (int cy=yoffset; cy<size.height+yoffset-height; ++cy)
     {
-		// Get start of row
-		for (unsigned int c=0; c<features.size(); ++c)
-			ptFCh_row[c] = &ptFCh[c][0];
+        // Get start of row
+        for (unsigned int c=0; c<features.size(); ++c)
+            ptFCh_row[c] = &ptFCh[c][0];
 
-		for(int cx=xoffset; cx<size.width+xoffset-width; ++cx)
+        for(int cx=xoffset; cx<size.width+xoffset-width; ++cx)
         {
-			// regression for a single patch
-			crForest_.regression(result, ptFCh_row, stepImg);
-			
-			for (size_t c=0; c<imgDetect.size(); ++c)
+            // regression for a single patch
+            crForest_.regression(result, ptFCh_row, stepImg);
+            
+            for (size_t c=0; c<imgDetect.size(); ++c)
             {
-			    // vote for all trees (leafs) 
-			    for (auto const &leaf : result)
+                // vote for all trees (leafs) 
+                for (auto &leaf : result)
                 {
-				    // To speed up the voting, one can vote only for patches 
-			        // with a probability for foreground > 0.5
+                    // To speed up the voting, one can vote only for patches 
+                    // with a probability for foreground > 0.5
                     // !!! CH This condition was commented out in the original code,
                     //        with no indication why. It reduces processing from
                     //        4m to 20s on a debug build, so worth having, and
                     //        produces a good result. I haven't compared the
                     //        accuracy fully yet, though
-				    if (leaf->pfg > 0.5)
+                    if (leaf->pfg > 0.5)
                     {
-					    // voting weight for leaf 
-					    float const w = leaf->pfg / float(leaf->vCenter.size() * result.size());
+                        // voting weight for leaf 
+                        float const w = leaf->pfg / float(leaf->vCenter.size() * result.size());
 
-					    // vote for all points stored in the leaf
-					    for (auto const &centre : leaf->vCenter)
+                        // vote for all points stored in the leaf
+                        for (size_t ndx=0; ndx<leaf->vCenter.size(); ++ndx)
                         {
-						    int const x = int(cx - centre[0].x * ratios[c] + 0.5);
-						    int const y = cy - centre[0].y;
-						    if (y>=0  &&  x>=0  &&  y<imgDetect[c]->height  &&  x<imgDetect[c]->width)
-						        *(ptDet[c] + x + y*stepDet) += w;
-					    }
-					}
-				} // end if
-			}
+                            int const x = int(cx - leaf->vCenter[ndx][0].x * ratios[c] + 0.5);
+                            int const y = cy - leaf->vCenter[ndx][0].y;
+                            if (x>=0  &&  y>=0  &&  x<imgDetect[c]->width  &&  y<imgDetect[c]->height)
+                            {
+                                *(ptDet[c] + x + y*stepDet) += w;
 
-			// increase pointer - x
-			for(unsigned int c=0; c<features.size(); ++c)
-				++ptFCh_row[c];
+                                if (x>=roi.x  &&  y>=roi.y  &&  y-roi.y<roi.height  &&  x-roi.x<roi.width)
+                                    contributor_map[y][x][leaf->src_index[ndx]] += w;
+                            }
+                        }
+                    }
+                } // end if
+            }
 
-		} // end for x
+            // increase pointer - x
+            for(unsigned int c=0; c<features.size(); ++c)
+                ++ptFCh_row[c];
 
-		// increase pointer - y
-		for(unsigned int c=0; c<features.size(); ++c)
-			ptFCh[c] += stepImg;
+        } // end for x
 
-	} // end for y 	
+        // increase pointer - y
+        for(unsigned int c=0; c<features.size(); ++c)
+            ptFCh[c] += stepImg;
 
-	// smooth result image
+    } // end for y 	
+
+    // smooth result image
 	for(int c=0; c<(int)imgDetect.size(); ++c)
 		cvSmooth( imgDetect[c], imgDetect[c], CV_GAUSSIAN, 3);
-	
-	delete[] ptFCh;
-	delete[] ptFCh_row;
-	delete[] ptDet;
+    
+    delete[] ptFCh;
+    delete[] ptFCh_row;
+    delete[] ptDet;
 
+    return contributor_map;
 }
 
 }   // namespace gall

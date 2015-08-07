@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <boost/dynamic_bitset.hpp>
 #include "CRForest.h"
 
 namespace gall {
@@ -21,10 +22,12 @@ public:
         return crForest_.GetNumCenter();
     }
 
-    void accumulate_votes(CvSize                 const &size,
-                          std::vector<IplImage*> const &features,
-                          std::vector<float>     const &ratios,
-                          std::vector<IplImage*>       &imgDetect) const;
+    std::vector<std::vector<std::map<int, float>>>
+    accumulate_votes(CvSize                 const &size,
+                     cv::Rect               const &roi,
+                     std::vector<IplImage*> const &features,
+                     std::vector<float>     const &ratios,
+                     std::vector<IplImage*>       &imgDetect) const;
 
 private:
     CRForestDetector &operator=(CRForestDetector &&)      = delete;
