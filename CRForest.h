@@ -55,17 +55,18 @@ inline void CRForest::regression(std::vector<const LeafNode*>& result, uchar** p
 }
 
 //Training
-inline void CRForest::trainForest(int min_s, int max_d, CvRNG* pRNG, const CRPatch& TrData, int samples) {
+inline void CRForest::trainForest(int min_s, int max_d, CvRNG* pRNG, const CRPatch& TrData, int samples)
+{
     for(int i=0; i < (int)vTrees.size(); ++i)
-        vTrees[i] = new CRTree( min_s, max_d, TrData.vLPatches[1][0].center.size(), pRNG);
+        vTrees[i] = new CRTree(min_s, max_d, TrData.vLPatches[1][0].center.size(), pRNG);
 
-    #pragma omp parallel for 
-    for(int i=0; i < (int)vTrees.size(); ++i)
+#   pragma omp parallel for 
+    for (int i=0; i < (int)vTrees.size(); ++i)
     {
+        auto const depth = vTrees[i]->growTree(TrData, samples);
         std::cout << "(Thread " << omp_get_thread_num() << ") Tree "
-                  << i << " trained to depth: "
-                  << vTrees[i]->growTree(TrData, samples)
-                  << " (max depth=" << max_d << ")\n";
+                  << i     << " trained to depth: "
+                  << depth << " (max depth=" << max_d << ")\n";
     }
 }
 
