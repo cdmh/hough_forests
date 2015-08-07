@@ -17,10 +17,13 @@ namespace gall {
 
 // structure for image patch
 struct PatchFeature {
-	PatchFeature() {}
+	explicit PatchFeature(int ndx) : src_index(ndx) {}
 
 	CvRect roi;
 	std::vector<CvPoint> center;
+
+    // index of the src image in the full training
+    int const src_index;
 
 	std::vector<CvMat*> vPatch;
 	void print() const {
@@ -28,6 +31,9 @@ struct PatchFeature {
 		for(unsigned int i=0; i<center.size(); ++i) std::cout << " " << center[i].x << " " << center[i].y; std::cout << std::endl;
 	}
 	void show(int delay) const;
+
+    // not copyable because of the const index
+    PatchFeature &operator=(PatchFeature const &) = delete;
 };
 
 static HoG hog; 

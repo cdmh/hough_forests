@@ -37,6 +37,9 @@ struct LeafNode {
 	float pfg;
 	// Vectors from object center to training patches
 	std::vector<std::vector<CvPoint> > vCenter;	
+
+    // index of the src image in the full training
+    std::vector<int> src_index;
 };
 
 inline
