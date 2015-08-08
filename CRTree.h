@@ -38,8 +38,8 @@ struct LeafNode {
 	// Vectors from object center to training patches
 	std::vector<std::vector<CvPoint> > vCenter;	
 
-    // index of the src image in the full training
-    std::vector<int> src_index;
+    // index of the src image (first) and patch (second)
+    std::vector<std::pair<int, int>> src_indices;
 };
 
 inline

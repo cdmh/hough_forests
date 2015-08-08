@@ -17,13 +17,13 @@ namespace gall {
 
 // structure for image patch
 struct PatchFeature {
-	explicit PatchFeature(int ndx) : src_index(ndx) {}
+	explicit PatchFeature(int frame, int patch) : src_index{frame, patch} {}
 
 	CvRect roi;
 	std::vector<CvPoint> center;
 
     // index of the src image in the full training
-    int const src_index;
+    std::pair<int, int> src_index;
 
 	std::vector<CvMat*> vPatch;
 	void print() const {

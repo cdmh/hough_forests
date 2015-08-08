@@ -107,12 +107,13 @@ bool const CRTree::load(std::ifstream &in, bool binary) {
 			size_t size;
             read(in, binary, size);
 			ptLN->vCenter.resize(size);
-            ptLN->src_index.resize(size);
+            ptLN->src_indices.resize(size);
 			for(size_t i=0; i<size; ++i) {
 				ptLN->vCenter[i].resize(num_cp);
 				for(unsigned int k=0; k<num_cp; ++k) {
 					read(in, binary, ptLN->vCenter[i][k].x, ptLN->vCenter[i][k].y);
-    				read(in, binary, ptLN->src_index[i]);
+    				read(in, binary, ptLN->src_indices[i].first);
+    				read(in, binary, ptLN->src_indices[i].second);
 				}
 			}
 		}
@@ -171,7 +172,8 @@ bool const CRTree::save(ofstream &out, bool binary) const {
 				for(unsigned int k=0; k<ptLN->vCenter[i].size(); ++k) {
 					//out << ptLN->vCenter[i][k].x << " " << ptLN->vCenter[i][k].y << " ";
 					write(out, binary, ptLN->vCenter[i][k].x, ptLN->vCenter[i][k].y);
-					write(out, binary, ptLN->src_index[i]);
+					write(out, binary, ptLN->src_indices[i].first);
+					write(out, binary, ptLN->src_indices[i].second);
 				}
 			}
 			//out << '\n';
@@ -292,18 +294,22 @@ void CRTree::makeLeaf(const std::vector<std::vector<const PatchFeature*> >& Trai
 	// Store data
 	ptL->pfg = TrainSet[1].size() / float(pnratio*TrainSet[0].size()+TrainSet[1].size());
 	ptL->vCenter.resize( TrainSet[1].size() );
-	ptL->src_index.resize( TrainSet[1].size() );
+	ptL->src_indices.resize( TrainSet[1].size() );
 	for(unsigned int i = 0; i<TrainSet[1].size(); ++i) {
-		ptL->vCenter[i]   = TrainSet[1][i]->center;
-        ptL->src_index[i] = TrainSet[1][i]->src_index;
+		ptL->vCenter[i]     = TrainSet[1][i]->center;
+        ptL->src_indices[i] = TrainSet[1][i]->src_index;
 	}
 
 	// Increase leaf counter
 	++num_leaf;
 }
 
-bool CRTree::optimizeTest(vector<vector<const PatchFeature*> >& SetA, vector<vector<const PatchFeature*> >& SetB, const vector<vector<const PatchFeature*> >& TrainSet, int* test, unsigned int iter, unsigned int measure_mode) {
-	
+bool CRTree::optimizeTest(
+    vector<vector<const PatchFeature*> >& SetA,
+    vector<vector<const PatchFeature*> >& SetB,
+    const vector<vector<const PatchFeature*> >& TrainSet,
+    int* test, unsigned int iter, unsigned int measure_mode)
+{
 	bool found = false;
 
 	// temporary data for split into Set A and Set B

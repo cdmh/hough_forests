@@ -39,10 +39,17 @@ void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect co
 	// reserve memory
 	size_t offset = vLPatches[label].size();
 	vLPatches[label].reserve(offset+n);
-	for(unsigned int i=0; i<n; ++i) {
+
+    if (offset/n > std::numeric_limits<int>::max())
+        throw std::runtime_error("Too many images at " + std::string(__FILE__) + " (" + std::to_string(__LINE__) + ')');
+
+    if (n > (unsigned)std::numeric_limits<int>::max())
+        throw std::runtime_error("Too many samples at " + std::string(__FILE__) + " (" + std::to_string(__LINE__) + ')');
+
+	for(int i=0; i<int(n); ++i) {
 		CvPoint pt = *(CvPoint*)cvPtr1D( locations, i, 0 );
 		
-		vLPatches[label].emplace_back(i);
+		vLPatches[label].emplace_back(int(offset/n), i);
 		PatchFeature &pf = vLPatches[label].back();
 
 		pf.roi.x = pt.x;

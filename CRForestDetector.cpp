@@ -14,7 +14,7 @@ namespace gall {
 using namespace std;
 
 
-std::vector<std::vector<std::map<int, float>>>
+std::vector<std::vector<std::map<int, std::map<int, float>>>>
 CRForestDetector::accumulate_votes(
     CvSize                 const &size,
     cv::Rect               const &roi,
@@ -50,8 +50,8 @@ CRForestDetector::accumulate_votes(
     int const yoffset = height/2;
 
     // data structure to record the leaf contributors to each pixel
-    std::vector<std::vector<std::map<int, float>>>
-    contributor_map(size.height, std::vector<std::map<int, float>>(size.width));
+    std::vector<std::vector<std::map<int, std::map<int, float>>>>
+    contributor_map(size.height, std::vector<std::map<int, std::map<int, float>>>(size.width));
 
     // cx,cy center of patch
 	vector<const LeafNode*> result(crForest_.GetSize());
@@ -93,7 +93,7 @@ CRForestDetector::accumulate_votes(
                                 *(ptDet[c] + x + y*stepDet) += w;
 
                                 if (x>=roi.x  &&  y>=roi.y  &&  y-roi.y<roi.height  &&  x-roi.x<roi.width)
-                                    contributor_map[y][x][leaf->src_index[ndx]] += w;
+                                    contributor_map[y][x][leaf->src_indices[ndx].first][leaf->src_indices[ndx].second] += w;
                             }
                         }
                     }
