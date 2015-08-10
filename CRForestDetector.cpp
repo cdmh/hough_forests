@@ -14,9 +14,8 @@ namespace gall {
 using namespace std;
 
 
-std::vector<std::vector<std::map<int, std::map<int, float>>>>
+std::vector<std::vector<cv::Mat>>
 CRForestDetector::accumulate_votes(
-    CvSize                 const &size,
     cv::Rect               const &roi,
     std::vector<IplImage*> const &features,
     std::vector<float>     const &ratios,
@@ -25,6 +24,12 @@ CRForestDetector::accumulate_votes(
 #ifdef CR_PROGRESS
     cdmh::timer t("CRForestDetector::accumulate_votes");
 #endif
+
+    assert(features.size() == 32);
+    assert(features[0]->width >= roi.width);
+    assert(features[0]->height >= roi.height);
+    assert(features[0]->width == features[0]->width);
+    assert(features[0]->height == features[0]->height);
 
     // reset output image
     for(int c=0; c<(int)imgDetect.size(); ++c)
@@ -50,18 +55,17 @@ CRForestDetector::accumulate_votes(
     int const yoffset = height/2;
 
     // data structure to record the leaf contributors to each pixel
-    std::vector<std::vector<std::map<int, std::map<int, float>>>>
-    contributor_map(size.height, std::vector<std::map<int, std::map<int, float>>>(size.width));
+    std::vector<std::vector<cv::Mat>> contributor_map(imgDetect.size());
 
     // cx,cy center of patch
 	vector<const LeafNode*> result(crForest_.GetSize());
-    for (int cy=yoffset; cy<size.height+yoffset-height; ++cy)
+    for (int cy=yoffset+roi.y; cy<roi.y+roi.height+yoffset-height; ++cy)
     {
         // Get start of row
         for (unsigned int c=0; c<features.size(); ++c)
             ptFCh_row[c] = &ptFCh[c][0];
 
-        for(int cx=xoffset; cx<size.width+xoffset-width; ++cx)
+        for(int cx=xoffset+roi.x; cx<roi.x+roi.height+xoffset-width; ++cx)
         {
             // regression for a single patch
             crForest_.regression(result, ptFCh_row, stepImg);
@@ -92,8 +96,13 @@ CRForestDetector::accumulate_votes(
                             {
                                 *(ptDet[c] + x + y*stepDet) += w;
 
-                                if (x>=roi.x  &&  y>=roi.y  &&  y-roi.y<roi.height  &&  x-roi.x<roi.width)
-                                    contributor_map[y][x][leaf->src_indices[ndx].first][leaf->src_indices[ndx].second] += w;
+                                size_t const frame = leaf->src_indices[ndx];
+                                for (size_t i=contributor_map[c].size(); i<=frame; ++i)
+                                    contributor_map[c].push_back(cv::Mat::zeros(features[0]->height,features[0]->width,CV_32FC1));
+
+                                for (int cy1=leaf->roi[ndx].y; cy1<=leaf->roi[ndx].y+leaf->roi[ndx].height; ++cy1)
+                                    for (int cx1=leaf->roi[ndx].x; cx1<=leaf->roi[ndx].x+leaf->roi[ndx].width; ++cx1)
+                                        contributor_map[c][frame].at<float>(cy1,cx1) += w;
                             }
                         }
                     }

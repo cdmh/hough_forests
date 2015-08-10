@@ -13,37 +13,32 @@ namespace gall {
 namespace detail {
 
 template<typename T>
-bool const read(std::ifstream &in, bool binary, T &value)
+bool const read(std::ifstream &in, T &value)
 {
-    if (binary)
-        in.read(reinterpret_cast<char *>(&value), sizeof(value));
-    else
-        in >> value;
+    in.read(reinterpret_cast<char *>(&value), sizeof(value));
+
     assert(!in.bad()  &&  !in.fail());
     return !in.bad()  &&  !in.fail();
 }
 
 template<typename T, typename ... Args>
-bool const read(std::ifstream &in, bool binary, T &value, Args& ... args)
+bool const read(std::ifstream &in, T &value, Args& ... args)
 {
-    return read(in, binary, value)  &&  read(in, binary, args...);
+    return read(in, value)  &&  read(in, args...);
 }
 
 template<typename T>
-bool const write(std::ofstream &out, bool binary, T const &value)
+bool const write(std::ofstream &out, T const &value)
 {
-    if (binary)
-        out.write(reinterpret_cast<char const *>(&value), sizeof(value));
-    else
-        out << value << ' ';
+    out.write(reinterpret_cast<char const *>(&value), sizeof(value));
     assert(!out.bad()  &&  !out.fail());
     return !out.bad()  &&  !out.fail();
 }
 
 template<typename T, typename ... Args>
-bool const write(std::ofstream &out, bool binary, T const &value, Args ... args)
+bool const write(std::ofstream &out, T const &value, Args ... args)
 {
-    return write(out, binary, value)  &&  write(out, binary, args...);
+    return write(out, value)  &&  write(out, args...);
 }
 
 }   // namespace detail
@@ -53,67 +48,68 @@ using namespace std;
 /////////////////////// Constructors /////////////////////////////
 
 // Read tree from file
-CRTree::CRTree(const char* filename, bool binary)
+CRTree::CRTree(const char* filename)
 {
 	cout << "Load Tree " << filename << endl;
 
-	ifstream in(filename, std::ios_base::in | (binary? std::ios::binary : 0));
+	ifstream in(filename, std::ios_base::in | std::ios::binary);
     if (!load(in))
         cerr << "Could not read tree: " << filename << endl;
 }
 
-CRTree::CRTree(ifstream &in, bool binary)
+CRTree::CRTree(ifstream &in)
 {
-    load(in, binary);
+    load(in);
 }
 
 
 /////////////////////// IO Function /////////////////////////////
 
-bool const CRTree::load(std::ifstream &in, bool binary) {
+bool const CRTree::load(std::ifstream &in) {
 	int dummy;
 
 	if(in.is_open()) {
         using detail::read;
 
 		// allocate memory for tree table
-		read(in, binary, max_depth);
+		read(in, max_depth);
 		num_nodes = (int)pow(2.0,int(max_depth+1))-1;
 		// num_nodes x 7 matrix as vector
 		treetable = new int[num_nodes * 7];
 		int* ptT = &treetable[0];
 		
 		// allocate memory for leafs
-		read(in, binary, num_leaf);
+		read(in, num_leaf);
 		leaf = new LeafNode[num_leaf];
 
 		// number of center points per patch 
-		read(in, binary, num_cp);
+		read(in, num_cp);
 
 		// read tree nodes
 		for(unsigned int n=0; n<num_nodes; ++n) {
-			read(in, binary, dummy, dummy);
+			read(in, dummy, dummy);
 			for(unsigned int i=0; i<7; ++i, ++ptT) {
-				read(in, binary, *ptT);
+				read(in, *ptT);
 			}
 		}
 
 		// read tree leafs
 		LeafNode* ptLN = &leaf[0];
 		for(unsigned int l=0; l<num_leaf; ++l, ++ptLN) {
-			read(in, binary, dummy, ptLN->pfg);
+			read(in, dummy, ptLN->pfg);
 			
 			// number of positive patches
 			size_t size;
-            read(in, binary, size);
+            read(in, size);
+            ptLN->roi.resize(size);
 			ptLN->vCenter.resize(size);
             ptLN->src_indices.resize(size);
 			for(size_t i=0; i<size; ++i) {
 				ptLN->vCenter[i].resize(num_cp);
 				for(unsigned int k=0; k<num_cp; ++k) {
-					read(in, binary, ptLN->vCenter[i][k].x, ptLN->vCenter[i][k].y);
-    				read(in, binary, ptLN->src_indices[i].first);
-    				read(in, binary, ptLN->src_indices[i].second);
+    				read(in, ptLN->roi[i]);
+					read(in, ptLN->vCenter[i][k].x, ptLN->vCenter[i][k].y);
+    				read(in, ptLN->src_indices[i]);
 				}
 			}
 		}
@@ -125,21 +121,21 @@ bool const CRTree::load(std::ifstream &in, bool binary) {
     return true;
 }
 
-bool CRTree::saveTree(const char* filename, bool binary) const
+bool CRTree::saveTree(const char* filename) const
 {
 	cout << "Save Tree " << filename << endl;
     ofstream out(filename);
-    return save(out, binary);
+    return save(out);
 }
 
-bool const CRTree::save(ofstream &out, bool binary) const {
+bool const CRTree::save(ofstream &out) const {
 	bool done = false;
 
 	if(out.is_open()) {
         using detail::write;
 
 		//out << max_depth << " " << num_leaf << " " << num_cp << '\n';
-        write(out, binary, max_depth, num_leaf, num_cp);
+        write(out, max_depth, num_leaf, num_cp);
 
 		// save tree nodes
 		int* ptT = &treetable[0];
@@ -153,10 +149,10 @@ bool const CRTree::save(ofstream &out, bool binary) const {
 			}
 
 			//out << n << " " << depth << " ";
-            write(out, binary, n, depth);
+            write(out, n, depth);
 			for(unsigned int i=0; i<7; ++i, ++ptT) {
 				//out << *ptT << " ";
-                write(out, binary, *ptT);
+                write(out, *ptT);
 			}
 			//out << '\n';
 		}
@@ -166,14 +162,14 @@ bool const CRTree::save(ofstream &out, bool binary) const {
 		LeafNode* ptLN = &leaf[0];
 		for(unsigned int l=0; l<num_leaf; ++l, ++ptLN) {
 			//out << l << " " << ptLN->pfg << " " << ptLN->vCenter.size() << " ";
-            write(out, binary, l, ptLN->pfg, ptLN->vCenter.size());
+            write(out, l, ptLN->pfg, ptLN->vCenter.size());
 			
 			for(unsigned int i=0; i<ptLN->vCenter.size(); ++i) {
 				for(unsigned int k=0; k<ptLN->vCenter[i].size(); ++k) {
 					//out << ptLN->vCenter[i][k].x << " " << ptLN->vCenter[i][k].y << " ";
-					write(out, binary, ptLN->vCenter[i][k].x, ptLN->vCenter[i][k].y);
-					write(out, binary, ptLN->src_indices[i].first);
-					write(out, binary, ptLN->src_indices[i].second);
+					write(out, ptLN->roi[i]);
+					write(out, ptLN->vCenter[i][k].x, ptLN->vCenter[i][k].y);
+					write(out, ptLN->src_indices[i]);
 				}
 			}
 			//out << '\n';
@@ -293,9 +289,11 @@ void CRTree::makeLeaf(const std::vector<std::vector<const PatchFeature*> >& Trai
 
 	// Store data
 	ptL->pfg = TrainSet[1].size() / float(pnratio*TrainSet[0].size()+TrainSet[1].size());
-	ptL->vCenter.resize( TrainSet[1].size() );
-	ptL->src_indices.resize( TrainSet[1].size() );
+	ptL->roi.resize(TrainSet[1].size());
+	ptL->vCenter.resize(TrainSet[1].size());
+	ptL->src_indices.resize(TrainSet[1].size());
 	for(unsigned int i = 0; i<TrainSet[1].size(); ++i) {
+		ptL->roi[i]         = TrainSet[1][i]->roi;
 		ptL->vCenter[i]     = TrainSet[1][i]->center;
         ptL->src_indices[i] = TrainSet[1][i]->src_index;
 	}

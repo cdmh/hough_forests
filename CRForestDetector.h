@@ -22,9 +22,8 @@ public:
         return crForest_.GetNumCenter();
     }
 
-    std::vector<std::vector<std::map<int, std::map<int, float>>>>
-    accumulate_votes(CvSize                 const &size,
-                     cv::Rect               const &roi,
+    std::vector<std::vector<cv::Mat>>
+    accumulate_votes(cv::Rect               const &roi,
                      std::vector<IplImage*> const &features,
                      std::vector<float>     const &ratios,
                      std::vector<IplImage*>       &imgDetect) const;

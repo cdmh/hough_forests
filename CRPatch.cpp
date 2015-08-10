@@ -49,7 +49,7 @@ void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect co
 	for(int i=0; i<int(n); ++i) {
 		CvPoint pt = *(CvPoint*)cvPtr1D( locations, i, 0 );
 		
-		vLPatches[label].emplace_back(int(offset/n), i);
+		vLPatches[label].emplace_back(int(offset/n));
 		PatchFeature &pf = vLPatches[label].back();
 
 		pf.roi.x = pt.x;
