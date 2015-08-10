@@ -72,6 +72,8 @@ CRForestDetector::accumulate_votes(
             
             for (size_t c=0; c<imgDetect.size(); ++c)
             {
+                auto &contrib = contributor_map[c];
+
                 // vote for all trees (leafs) 
                 for (auto &leaf : result)
                 {
@@ -97,12 +99,12 @@ CRForestDetector::accumulate_votes(
                                 *(ptDet[c] + x + y*stepDet) += w;
 
                                 size_t const frame = leaf->src_indices[ndx];
-                                for (size_t i=contributor_map[c].size(); i<=frame; ++i)
-                                    contributor_map[c].push_back(cv::Mat::zeros(features[0]->height,features[0]->width,CV_32FC1));
+                                for (size_t i=contrib.size(); i<=frame; ++i)
+                                    contrib.push_back(cv::Mat::zeros(features[0]->height,features[0]->width,CV_32FC1));
 
                                 for (int cy1=leaf->roi[ndx].y; cy1<=leaf->roi[ndx].y+leaf->roi[ndx].height; ++cy1)
                                     for (int cx1=leaf->roi[ndx].x; cx1<=leaf->roi[ndx].x+leaf->roi[ndx].width; ++cx1)
-                                        contributor_map[c][frame].at<float>(cy1,cx1) += w;
+                                        contrib[frame].at<float>(cy1,cx1) += w;
                             }
                         }
                     }
@@ -122,9 +124,9 @@ CRForestDetector::accumulate_votes(
     } // end for y 	
 
     // smooth result image
-	for(int c=0; c<(int)imgDetect.size(); ++c)
-		cvSmooth( imgDetect[c], imgDetect[c], CV_GAUSSIAN, 3);
-    
+	for(auto &i: imgDetect)
+		cvSmooth(i, i, CV_GAUSSIAN, 3);
+
     delete[] ptFCh;
     delete[] ptFCh_row;
     delete[] ptDet;
