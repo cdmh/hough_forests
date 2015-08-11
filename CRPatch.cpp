@@ -17,22 +17,32 @@ namespace gall {
 
 using namespace std;
 
-void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect const * const box, std::vector<CvPoint>* vCenter) {
+void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect const * const box, std::vector<CvPoint>* vCenter)
+{
     if (width > img->width  ||  height > img->height)
         return;
 
 	// extract features
 	vector<IplImage*> vImg;
 	extractFeatureChannels(img, vImg);
+    extractPatches(vImg, n, label, box, vCenter);
 
+	for(unsigned int c=0; c<vImg.size(); ++c)
+		cvReleaseImage(&vImg[c]);
+}
+
+void CRPatch::extractPatches(vector<IplImage*> const &vImg, unsigned int n, int label, CvRect const * const box, std::vector<CvPoint>* vCenter)
+{
 	CvMat tmp;
 	int offx = width/2; 
 	int offy = height/2;
 
+    assert(vImg.size() != 0);
+
 	// generate x,y locations
 	CvMat* locations = cvCreateMat( n, 1, CV_32SC2 );
 	if(box==0)
-		cvRandArr( cvRNG, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(img->width-width,img->height-height,0,0) );
+		cvRandArr( cvRNG, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(vImg[0]->width-width,vImg[0]->height-height,0,0) );
 	else
 		cvRandArr( cvRNG, locations, CV_RAND_UNI, cvScalar(box->x,box->y,0,0), cvScalar(box->x+box->width-width,box->y+box->height-height,0,0) );
 
@@ -73,8 +83,6 @@ void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect co
 	}
 
 	cvReleaseMat(&locations);
-	for(unsigned int c=0; c<vImg.size(); ++c)
-		cvReleaseImage(&vImg[c]);
 }
 
 void CRPatch::extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg) {

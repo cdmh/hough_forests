@@ -45,6 +45,9 @@ public:
 	// Extract patches from image
 	void extractPatches(IplImage *img, unsigned int n, int label, CvRect const * const box = 0, std::vector<CvPoint>* vCenter = 0);
 
+	// Extract patches from feature channels
+	void extractPatches(std::vector<IplImage*> const &vImg, unsigned int n, int label, CvRect const * const box = 0, std::vector<CvPoint>* vCenter = 0);
+
 	// Extract features from image
 	static void extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg);
 
