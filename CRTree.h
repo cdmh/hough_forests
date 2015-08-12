@@ -97,6 +97,8 @@ public:
 	// Set/Get functions
 	unsigned int GetDepth() const {return max_depth;}
 	size_t       GetNumCenter() const {return num_cp;}
+	unsigned int GetNumLeaves() const {return num_leaf;}
+	LeafNode const &GetLeaf(int ndx) const { return leaf[ndx]; }
 
 	// Regression
 	const LeafNode* regression(uchar** ptFCh, int stepImg) const;
