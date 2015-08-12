@@ -59,13 +59,13 @@ CRForestDetector::accumulate_votes(
 
     // cx,cy center of patch
 	vector<const LeafNode*> result(crForest_.GetSize());
-    for (int cy=yoffset+roi.y; cy<roi.y+roi.height+yoffset-height; ++cy)
+    for (int cy=yoffset+roi.y; cy<=roi.y+roi.height+yoffset-height; ++cy)
     {
         // Get start of row
         for (unsigned int c=0; c<features.size(); ++c)
             ptFCh_row[c] = &ptFCh[c][0];
 
-        for(int cx=xoffset+roi.x; cx<roi.x+roi.height+xoffset-width; ++cx)
+        for(int cx=xoffset+roi.x; cx<=roi.x+roi.width+xoffset-width; ++cx)
         {
             // regression for a single patch
             crForest_.regression(result, ptFCh_row, stepImg);
@@ -101,7 +101,20 @@ CRForestDetector::accumulate_votes(
                                 size_t const frame = leaf->src_indices[ndx];
                                 for (size_t i=contrib.size(); i<=frame; ++i)
                                     contrib.push_back(cv::Mat::zeros(features[0]->height,features[0]->width,CV_32FC1));
-
+//!!!!!!!!!!!!!!!!!!!!!!!!!
+// we don't know the original image size, so we'll resize as we go. this is very inefficient, so needs fixing
+                                {
+                                auto const mx = 1+leaf->roi[ndx].x+leaf->roi[ndx].width;
+                                auto const my = 1+leaf->roi[ndx].y+leaf->roi[ndx].height;
+                                if (contrib[frame].cols < mx  ||  contrib[frame].rows < my)
+                                {
+                                    cv::Mat newimage = cv::Mat::zeros(std::max(my,contrib[frame].rows), std::max(mx,contrib[frame].cols), CV_32FC1);
+                                    cv::Rect roi(cv::Point(0,0),contrib[frame].size());
+                                    contrib[frame].copyTo(newimage(roi));
+                                    swap(contrib[frame], newimage);
+                                }
+                                }
+//!!!!!!!!!!!!!!!!!!!!!!!!!
                                 for (int cy1=leaf->roi[ndx].y; cy1<=leaf->roi[ndx].y+leaf->roi[ndx].height; ++cy1)
                                     for (int cx1=leaf->roi[ndx].x; cx1<=leaf->roi[ndx].x+leaf->roi[ndx].width; ++cx1)
                                         contrib[frame].at<float>(cy1,cx1) += w;
