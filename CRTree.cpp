@@ -215,7 +215,7 @@ unsigned int CRTree::grow(const vector<vector<const PatchFeature*> >& TrainSet, 
 		// Set measure mode for split: 0 - classification, 1 - regression
 		unsigned int measure_mode = 1;
 		if( float(TrainSet[0].size()) / float(TrainSet[0].size()+TrainSet[1].size()) >= 0.05 && depth < max_depth-2 )
-			measure_mode = cvRandInt( cvRNG ) % 2;
+			measure_mode = cvRandInt( &rng ) % 2;
 
 #ifdef CR_PROGRESS
 		cout << "MeasureMode " << depth << " " << measure_mode << " " << TrainSet[0].size() << " " << TrainSet[1].size() << endl;
@@ -353,7 +353,7 @@ bool CRTree::optimizeTest(
 			for(unsigned int j=0; j<10; ++j) { 
 
 				// Generate some random thresholds
-				int tr = (cvRandInt( cvRNG ) % (d)) + vmin; 
+				int tr = (cvRandInt( &rng ) % (d)) + vmin; 
 
 				// Split training data into two sets A,B accroding to threshold t 
 				split(tmpA, tmpB, TrainSet, valSet, tr);

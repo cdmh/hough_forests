@@ -84,7 +84,7 @@ public:
 	// Constructors
 	explicit CRTree(const char* filename);
     explicit CRTree(std::ifstream &in);
-	CRTree(int min_s, int max_d, size_t cp, CvRNG* pRNG) : min_samples(min_s), max_depth(max_d), num_leaf(0), num_cp(cp), cvRNG(pRNG) {
+	CRTree(int min_s, int max_d, size_t cp, CvRNG rng) : min_samples(min_s), max_depth(max_d), num_leaf(0), num_cp(cp), rng(rng) {
 		num_nodes = (int)pow(2.0,int(max_depth+1))-1;
 		// num_nodes x 7 matrix as vector
 		treetable = new int[num_nodes * 7];
@@ -157,7 +157,7 @@ private:
 	//leafs as vector
 	LeafNode* leaf;
 
-	CvRNG *cvRNG;
+	CvRNG rng;
 
     friend bool const operator==(CRTree const &first, CRTree const &second);
 };
@@ -223,11 +223,11 @@ inline const LeafNode* CRTree::regression(uchar** ptFCh, int stepImg) const {
 }
 
 inline void CRTree::generateTest(int* test, size_t max_w, size_t max_h, size_t max_c) {
-	test[0] = cvRandInt( cvRNG ) % max_w;
-	test[1] = cvRandInt( cvRNG ) % max_h;
-	test[2] = cvRandInt( cvRNG ) % max_w;
-	test[3] = cvRandInt( cvRNG ) % max_h;
-	test[4] = cvRandInt( cvRNG ) % max_c;
+	test[0] = cvRandInt( &rng ) % max_w;
+	test[1] = cvRandInt( &rng ) % max_h;
+	test[2] = cvRandInt( &rng ) % max_w;
+	test[3] = cvRandInt( &rng ) % max_h;
+	test[4] = cvRandInt( &rng ) % max_c;
 }
 
 }   // namespace gall

@@ -35,7 +35,7 @@ public:
 	void regression(std::vector<const LeafNode*>& result, uchar** ptFCh, int stepImg) const;
 
 	// Training
-	void trainForest(int min_s, int max_d, CvRNG* pRNG, const CRPatch& TrData, int samples);
+	void trainForest(int min_s, int max_d, CvRNG rng, const CRPatch& TrData, int samples);
 
 	// IO functions
 	void saveForest(const char* filename, unsigned int offset = 0, int type = 0);
@@ -55,10 +55,11 @@ inline void CRForest::regression(std::vector<const LeafNode*>& result, uchar** p
 }
 
 //Training
-inline void CRForest::trainForest(int min_s, int max_d, CvRNG* pRNG, const CRPatch& TrData, int samples)
+inline void CRForest::trainForest(int min_s, int max_d, CvRNG rng, const CRPatch& TrData, int samples)
 {
+    // not thread safe because of the RNG
     for(int i=0; i < (int)vTrees.size(); ++i)
-        vTrees[i] = new CRTree(min_s, max_d, TrData.vLPatches[1][0].center.size(), pRNG);
+        vTrees[i] = new CRTree(min_s, max_d, TrData.vLPatches[1][0].center.size(), cvRandInt(&rng));
 
 #ifdef NDEBUG
 #   pragma omp parallel for 

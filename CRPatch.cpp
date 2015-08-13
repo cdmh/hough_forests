@@ -42,9 +42,9 @@ void CRPatch::extractPatches(vector<IplImage*> const &vImg, unsigned int n, int 
 	// generate x,y locations
 	CvMat* locations = cvCreateMat( n, 1, CV_32SC2 );
 	if(box==0)
-		cvRandArr( cvRNG, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(vImg[0]->width-width,vImg[0]->height-height,0,0) );
+		cvRandArr( &rng, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(vImg[0]->width-width,vImg[0]->height-height,0,0) );
 	else
-		cvRandArr( cvRNG, locations, CV_RAND_UNI, cvScalar(box->x,box->y,0,0), cvScalar(box->x+box->width-width,box->y+box->height-height,0,0) );
+		cvRandArr( &rng, locations, CV_RAND_UNI, cvScalar(box->x,box->y,0,0), cvScalar(box->x+box->width-width,box->y+box->height-height,0,0) );
 
 	// reserve memory
 	size_t offset = vLPatches[label].size();

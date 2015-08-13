@@ -40,7 +40,7 @@ static HoG hog;
 
 class CRPatch {
 public:
-	CRPatch(CvRNG* pRNG, int w, int h, int num_l) : cvRNG(pRNG), width(w), height(h) { vLPatches.resize(num_l);}
+	CRPatch(CvRNG rng, int w, int h, int num_l) : rng(rng), width(w), height(h) { vLPatches.resize(num_l);}
 
 	// Extract patches from image
 	void extractPatches(IplImage *img, unsigned int n, int label, CvRect const * const box = 0, std::vector<CvPoint>* vCenter = 0);
@@ -70,7 +70,7 @@ private:
 private:
 	int const width;
 	int const height;
-	CvRNG *cvRNG;
+	CvRNG rng;
 };
 
 }   // namespace gall
