@@ -92,8 +92,17 @@ CRForestDetector::accumulate_votes(
                         // vote for all points stored in the leaf
                         for (size_t ndx=0; ndx<leaf->vCenter.size(); ++ndx)
                         {
+//!!!!!!!!
+/// if we have trained the forest using the search dataset and the
+/// application is to find a smaller query image in that dataset,
+/// then we use a different voting mechanism
+#ifdef NOT_INVERTED_FOREST_TRAINING
                             int const x = int(cx - leaf->vCenter[ndx][0].x * ratios[c] + 0.5);
                             int const y = cy - leaf->vCenter[ndx][0].y;
+#else
+                            int const x = int(cx - (leaf->roi[ndx].width/2.) * ratios[c] + 0.5);
+                            int const y = int(cy - (leaf->roi[ndx].height/2.) + 0.5);
+#endif
                             if (x>=0  &&  y>=0  &&  x<imgDetect[c]->width  &&  y<imgDetect[c]->height)
                             {
                                 *(ptDet[c] + x + y*stepDet) += w;

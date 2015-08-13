@@ -60,7 +60,9 @@ inline void CRForest::trainForest(int min_s, int max_d, CvRNG* pRNG, const CRPat
     for(int i=0; i < (int)vTrees.size(); ++i)
         vTrees[i] = new CRTree(min_s, max_d, TrData.vLPatches[1][0].center.size(), pRNG);
 
+#ifdef NDEBUG
 #   pragma omp parallel for 
+#endif
     for (int i=0; i < (int)vTrees.size(); ++i)
     {
         auto const depth = vTrees[i]->growTree(TrData, samples);
