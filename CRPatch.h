@@ -48,6 +48,13 @@ public:
 	// Extract patches from feature channels
 	void extractPatches(std::vector<IplImage*> const &vImg, unsigned int n, int label, CvRect const * const box = 0, std::vector<CvPoint>* vCenter = 0);
 
+	// Extract patches from feature channels, ignoring areas of low texture
+	void extract_patches_of_texture(cv::Mat                 const &image,
+                                    std::vector<IplImage *> const &vImg,
+                                    unsigned int                   n,
+                                    CvRect const          * const  box     = nullptr,
+                                    std::vector<CvPoint>          *vCenter = nullptr);
+
 	// Extract features from image
 	static void extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg);
 

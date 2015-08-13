@@ -85,6 +85,136 @@ void CRPatch::extractPatches(vector<IplImage*> const &vImg, unsigned int n, int 
 	cvReleaseMat(&locations);
 }
 
+// inspired by https://github.com/rahul411/GLCM-parameters-using-Opencv-Library/blob/master/glcm_parameters.cpp
+cv::Mat GLCM(cv::Mat img)
+{
+    int rows = img.rows;
+    int cols = img.cols;
+    cv::Mat glcm = cv::Mat::zeros(256,256,CV_32FC1);
+  
+    if (img.channels() == 3)
+        cvtColor(img, img, cv::COLOR_BGR2GRAY);
+
+    for (int j=0; j<rows; j++)
+    {
+        for (int i=0; i<cols-1; i++)
+            glcm.at<float>(img.at<uchar>(j,i),img.at<uchar>(j,i+1)) = 1.f + glcm.at<float>(img.at<uchar>(j,i),img.at<uchar>(j,i+1));
+    }
+
+    // normalize glcm matrix
+    glcm = glcm + glcm.t();            
+    glcm = glcm / sum(glcm)[0];
+ 
+    return glcm;
+}
+
+// inspired by https://github.com/rahul411/GLCM-parameters-using-Opencv-Library/blob/master/glcm_parameters.cpp
+float const GLCM_contrast(cv::Mat const &img)
+{
+    cv::Mat glcm = GLCM(img);
+  
+    float contrast = 0.0f;
+    for (int j=0; j<glcm.rows; j++)
+    {
+        for (int i=0; i<glcm.cols-1; i++)
+            contrast += (j-i) * (j-i) * glcm.at<float>(j,i);
+    }
+ 
+    return contrast / float(glcm.cols * glcm.rows);
+}
+
+
+// re-implementation of CRPatch::extractPatches() that selects positive
+// and negative patches based on the GLCM contrast
+// low contrast patches are added to the negative training set and the search
+// continues for high (less-low) contrast patches that
+void CRPatch::extract_patches_of_texture(
+    cv::Mat                const &image,
+    std::vector<IplImage*> const &vImg,
+    unsigned int                  n,
+    CvRect const         * const  box,
+    std::vector<CvPoint>         *vCenter)
+{
+	CvMat tmp;
+	int offx = width/2; 
+	int offy = height/2;
+
+    assert(vImg.size() != 0);
+
+	// generate x,y locations
+    int const rnds = n * 4;
+	CvMat *locations = cvCreateMat( rnds, 1, CV_32SC2 );
+
+    const int LABEL_POSITIVE = 1;
+    const int LABEL_NEGATIVE = 0;
+
+	// reserve memory
+	size_t offset = vLPatches[LABEL_POSITIVE].size();
+	vLPatches[LABEL_POSITIVE].reserve(offset+n);
+
+    if (offset/n > std::numeric_limits<int>::max())
+        throw std::runtime_error("Too many images at " + std::string(__FILE__) + " (" + std::to_string(__LINE__) + ')');
+
+    if (n > (unsigned)std::numeric_limits<int>::max())
+        throw std::runtime_error("Too many samples at " + std::string(__FILE__) + " (" + std::to_string(__LINE__) + ')');
+
+    cv::Mat visualise = image.clone();
+
+    size_t count=0;
+	while (count < n)
+    {
+	    if (box==0)
+		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(vImg[0]->width-width,vImg[0]->height-height,0,0));
+	    else
+		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(box->x,box->y,0,0), cvScalar(box->x+box->width-width,box->y+box->height-height,0,0));
+
+        int rnd = 0;
+	    while (count<n  &&  rnd < rnds)
+        {
+		    CvPoint pt = *(CvPoint*)cvPtr1D( locations, rnd++, 0 );
+
+            int label;
+            cv::Mat patch(image(cv::Rect(pt, cv::Size(width,height))));
+            auto const contrast = GLCM_contrast(patch);
+            if (contrast > .015f)
+            {
+                label = LABEL_POSITIVE;
+                ++count;
+            }
+            else
+                label = LABEL_NEGATIVE;
+
+            vLPatches[label].emplace_back(int(offset/n));
+		    PatchFeature &pf = vLPatches[label].back();
+
+		    pf.roi.x = pt.x;
+            pf.roi.y = pt.y;
+		    pf.roi.width = width;
+            pf.roi.height = height; 
+
+		    if (label == LABEL_POSITIVE)
+            {
+			    pf.center.resize(vCenter->size());
+			    for (unsigned int c = 0; c<vCenter->size(); ++c)
+                {
+				    pf.center[c].x = pt.x + offx - (*vCenter)[c].x;
+				    pf.center[c].y = pt.y + offy - (*vCenter)[c].y;
+			    }
+		    }
+            rectangle(visualise, pf.roi, (label == LABEL_POSITIVE)? CV_RGB(0,255,0) : CV_RGB(255,0,0));
+
+		    pf.vPatch.resize(vImg.size());
+		    for(unsigned int c=0; c<vImg.size(); ++c)
+            {
+			    cvGetSubRect(vImg[c], &tmp,  pf.roi);
+			    pf.vPatch[c] = cvCloneMat(&tmp);
+		    }
+	    }
+    }
+
+	cvReleaseMat(&locations);
+}
+
 void CRPatch::extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg) {
 
 #ifdef CR_PROGRESS
