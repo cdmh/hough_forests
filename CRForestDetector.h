@@ -26,7 +26,8 @@ public:
     accumulate_votes(cv::Rect               const &roi,
                      std::vector<IplImage*> const &features,
                      std::vector<float>     const &ratios,
-                     std::vector<IplImage*>       &imgDetect) const;
+                     std::vector<IplImage*>       &imgDetect,
+                     bool                   const inverted_forest_training) const;
 
 private:
     CRForestDetector &operator=(CRForestDetector &&)      = delete;

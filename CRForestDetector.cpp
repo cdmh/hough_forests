@@ -19,7 +19,8 @@ CRForestDetector::accumulate_votes(
     cv::Rect               const &roi,
     std::vector<IplImage*> const &features,
     std::vector<float>     const &ratios,
-    std::vector<IplImage*>       &imgDetect) const
+    std::vector<IplImage*>       &imgDetect,
+    bool                   const inverted_forest_training) const
 {
 #ifdef CR_PROGRESS
     cdmh::timer t("CRForestDetector::accumulate_votes");
@@ -92,17 +93,21 @@ CRForestDetector::accumulate_votes(
                         // vote for all points stored in the leaf
                         for (size_t ndx=0; ndx<leaf->vCenter.size(); ++ndx)
                         {
-//!!!!!!!!
-/// if we have trained the forest using the search dataset and the
-/// application is to find a smaller query image in that dataset,
-/// then we use a different voting mechanism
-#ifdef NOT_INVERTED_FOREST_TRAINING
-                            int const x = int(cx - leaf->vCenter[ndx][0].x * ratios[c] + 0.5);
-                            int const y = cy - leaf->vCenter[ndx][0].y;
-#else
-                            int const x = int(cx - (leaf->roi[ndx].width/2.) * ratios[c] + 0.5);
-                            int const y = int(cy - (leaf->roi[ndx].height/2.) + 0.5);
-#endif
+                            /// if we have trained the forest using the search dataset and the
+                            /// application is to find a smaller query image in that dataset,
+                            /// then we use a different voting mechanism
+                            int x, y;
+                            if (inverted_forest_training)
+                            {
+                                x = int(cx - (leaf->roi[ndx].width/2.) * ratios[c] + 0.5);
+                                y = int(cy - (leaf->roi[ndx].height/2.) + 0.5);
+                            }
+                            else
+                            {
+                                x = int(cx - leaf->vCenter[ndx][0].x * ratios[c] + 0.5);
+                                y = cy - leaf->vCenter[ndx][0].y;
+                            }
+
                             if (x>=0  &&  y>=0  &&  x<imgDetect[c]->width  &&  y<imgDetect[c]->height)
                             {
                                 *(ptDet[c] + x + y*stepDet) += w;
@@ -113,15 +118,15 @@ CRForestDetector::accumulate_votes(
 //!!!!!!!!!!!!!!!!!!!!!!!!!
 // we don't know the original image size, so we'll resize as we go. this is very inefficient, so needs fixing
                                 {
-                                auto const mx = 1+leaf->roi[ndx].x+leaf->roi[ndx].width;
-                                auto const my = 1+leaf->roi[ndx].y+leaf->roi[ndx].height;
-                                if (contrib[frame].cols < mx  ||  contrib[frame].rows < my)
-                                {
-                                    cv::Mat newimage = cv::Mat::zeros(std::max(my,contrib[frame].rows), std::max(mx,contrib[frame].cols), CV_32FC1);
-                                    cv::Rect roi(cv::Point(0,0),contrib[frame].size());
-                                    contrib[frame].copyTo(newimage(roi));
-                                    swap(contrib[frame], newimage);
-                                }
+                                    auto const mx = 1+leaf->roi[ndx].x+leaf->roi[ndx].width;
+                                    auto const my = 1+leaf->roi[ndx].y+leaf->roi[ndx].height;
+                                    if (contrib[frame].cols < mx  ||  contrib[frame].rows < my)
+                                    {
+                                        cv::Mat newimage = cv::Mat::zeros(std::max(my,contrib[frame].rows), std::max(mx,contrib[frame].cols), CV_32FC1);
+                                        cv::Rect roi(cv::Point(0,0),contrib[frame].size());
+                                        contrib[frame].copyTo(newimage(roi));
+                                        swap(contrib[frame], newimage);
+                                    }
                                 }
 //!!!!!!!!!!!!!!!!!!!!!!!!!
                                 for (int cy1=leaf->roi[ndx].y; cy1<=leaf->roi[ndx].y+leaf->roi[ndx].height; ++cy1)

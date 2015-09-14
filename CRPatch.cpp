@@ -176,7 +176,7 @@ void CRPatch::extract_patches_of_texture(
             int label;
             cv::Mat patch(image(cv::Rect(pt, cv::Size(width,height))));
             auto const contrast = GLCM_contrast(patch);
-            if (contrast > .015f)
+            if (contrast > 0.015f)
             {
                 label = LABEL_POSITIVE;
                 ++count;
