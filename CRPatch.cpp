@@ -9,6 +9,8 @@
 #include "timer.h"
 #endif
 
+#define DEBUG_VISUALISE 1
+
 #include <deque>
 
 #define _copysign copysign
@@ -33,7 +35,6 @@ void CRPatch::extractPatches(IplImage *img, unsigned int n, int label, CvRect co
 
 void CRPatch::extractPatches(vector<IplImage*> const &vImg, unsigned int n, int label, CvRect const * const box, std::vector<CvPoint>* vCenter)
 {
-	CvMat tmp;
 	int offx = width/2; 
 	int offy = height/2;
 
@@ -77,6 +78,7 @@ void CRPatch::extractPatches(vector<IplImage*> const &vImg, unsigned int n, int 
 
 		pf.vPatch.resize(vImg.size());
 		for(unsigned int c=0; c<vImg.size(); ++c) {
+        	CvMat tmp;
 			cvGetSubRect( vImg[c], &tmp,  pf.roi );
 			pf.vPatch[c] = cvCloneMat(&tmp);
 		}
@@ -120,7 +122,7 @@ float const GLCM_contrast(cv::Mat const &img)
             contrast += (j-i) * (j-i) * glcm.at<float>(j,i);
     }
  
-    return contrast / float(glcm.cols * glcm.rows);
+    return contrast / float(img.cols * img.rows);
 }
 
 
@@ -135,58 +137,60 @@ void CRPatch::extract_patches_of_texture(
     CvRect const         * const  box,
     std::vector<CvPoint>         *vCenter)
 {
-	CvMat tmp;
-	int offx = width/2; 
-	int offy = height/2;
-
     assert(vImg.size() != 0);
 
-	// generate x,y locations
-    int const rnds = n * 4;
-	CvMat *locations = cvCreateMat( rnds, 1, CV_32SC2 );
-
-    const int LABEL_POSITIVE = 1;
-    const int LABEL_NEGATIVE = 0;
+	int const offx           = width/2; 
+	int const offy           = height/2;
+    int const LABEL_POSITIVE = 1;
+    int const LABEL_NEGATIVE = 0;
 
 	// reserve memory
 	size_t offset = vLPatches[LABEL_POSITIVE].size();
-	vLPatches[LABEL_POSITIVE].reserve(offset+n);
-
-    if (offset/n > std::numeric_limits<int>::max())
+    if (offset / n > std::numeric_limits<int>::max())
         throw std::runtime_error("Too many images at " + std::string(__FILE__) + " (" + std::to_string(__LINE__) + ')');
-
     if (n > (unsigned)std::numeric_limits<int>::max())
         throw std::runtime_error("Too many samples at " + std::string(__FILE__) + " (" + std::to_string(__LINE__) + ')');
+	vLPatches[LABEL_POSITIVE].reserve(offset+n);
 
+	// generate x,y locations
+    int const rnds = n * 4;
+	CvMat *locations = cvCreateMat(rnds, 1, CV_32SC2);
+
+#if DEBUG_VISUALISE
     cv::Mat visualise = image.clone();
-
-    size_t count=0;
-	while (count < n)
+#endif
+    size_t negatives = 0;
+    size_t positives = 0;
+	for (int loop=0; loop<5  &&  positives < n; ++loop)
     {
-	    if (box==0)
+	    if (box == 0)
 		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(vImg[0]->width-width,vImg[0]->height-height,0,0));
 	    else
 		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(box->x,box->y,0,0), cvScalar(box->x+box->width-width,box->y+box->height-height,0,0));
 
         int rnd = 0;
-	    while (count<n  &&  rnd < rnds)
+	    while (positives < n  &&  rnd < rnds)
         {
 		    CvPoint pt = *(CvPoint*)cvPtr1D( locations, rnd++, 0 );
 
             int label;
-            cv::Mat patch(image(cv::Rect(pt, cv::Size(width,height))));
-            auto const contrast = GLCM_contrast(patch);
-            if (contrast > 0.015f)
+            cv::Mat const patch    = image(cv::Rect(pt, cv::Size(width,height)));
+            float   const contrast = GLCM_contrast(patch);
+            if (contrast > 0.75f)
             {
                 label = LABEL_POSITIVE;
-                ++count;
+                ++positives;
+            }
+            else if (negatives < (positives << 2))
+            {
+                label = LABEL_NEGATIVE;
+                ++negatives;
             }
             else
-                label = LABEL_NEGATIVE;
+                continue;   // limit negative training patches to 4x positive training patches
 
-            vLPatches[label].emplace_back(int(offset/n));
+            vLPatches[label].emplace_back(int(offset / n));
 		    PatchFeature &pf = vLPatches[label].back();
-
 		    pf.roi.x = pt.x;
             pf.roi.y = pt.y;
 		    pf.roi.width = width;
@@ -201,14 +205,16 @@ void CRPatch::extract_patches_of_texture(
 				    pf.center[c].y = pt.y + offy - (*vCenter)[c].y;
 			    }
 		    }
+#if DEBUG_VISUALISE
             rectangle(visualise, pf.roi, (label == LABEL_POSITIVE)? CV_RGB(0,255,0) : CV_RGB(255,0,0));
+#endif
 
 		    pf.vPatch.resize(vImg.size());
-		    for(unsigned int c=0; c<vImg.size(); ++c)
-            {
-			    cvGetSubRect(vImg[c], &tmp,  pf.roi);
+		    for (unsigned int c=0; c<vImg.size(); ++c) {
+        	    CvMat tmp;
+			    cvGetSubRect( vImg[c], &tmp,  pf.roi );
 			    pf.vPatch[c] = cvCloneMat(&tmp);
-		    }
+            }
 	    }
     }
 

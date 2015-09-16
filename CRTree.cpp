@@ -394,7 +394,7 @@ void CRTree::evaluateTest(std::vector<std::vector<IntIndex> >& valSet, const int
 		for(unsigned int i=0;i<TrainSet[l].size();++i) {
 
 			// pointer to channel
-			CvMat* ptC = TrainSet[l][i]->vPatch[test[4]];
+			CvMat const *ptC = TrainSet[l][i]->vPatch[test[4]];
 			// get pixel values 
 			int p1 = (int)*(uchar*)cvPtr2D( ptC, test[1], test[0]);
 			int p2 = (int)*(uchar*)cvPtr2D( ptC, test[3], test[2]);

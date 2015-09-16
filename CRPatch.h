@@ -19,13 +19,19 @@ namespace gall {
 struct PatchFeature {
 	explicit PatchFeature(int frame) : src_index{frame} {}
 
+    //~PatchFeature()
+    //{
+    //    for (auto &patch : vPatch)
+    //        cvReleaseMat(&patch);
+    //}
+
 	CvRect roi;
 	std::vector<CvPoint> center;
 
     // index of the src image in the full training
     int src_index;
 
-	std::vector<CvMat*> vPatch;
+	std::vector<CvMat *> vPatch;
 	void print() const {
 		std::cout << roi.x << " " << roi.y << " " << roi.width << " " << roi.height;
 		for(unsigned int i=0; i<center.size(); ++i) std::cout << " " << center[i].x << " " << center[i].y; std::cout << std::endl;
