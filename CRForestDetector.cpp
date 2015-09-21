@@ -32,6 +32,9 @@ CRForestDetector::accumulate_votes(
     assert(features[0]->width == features[0]->width);
     assert(features[0]->height == features[0]->height);
 
+    if (roi.height < height  ||  roi.width < width)
+        throw std::runtime_error("Regression image is smaller than the patch size");
+
     // reset output image
     for(int c=0; c<(int)imgDetect.size(); ++c)
         cvSetZero( imgDetect[c] );
@@ -60,7 +63,7 @@ CRForestDetector::accumulate_votes(
 
     // cx,cy center of patch
 	vector<const LeafNode*> result(crForest_.GetSize());
-    for (int cy=yoffset+roi.y; cy<=roi.y+roi.height+yoffset-height; ++cy)
+    for (int cy=yoffset+roi.y; cy<=yoffset+roi.y+roi.height-height; ++cy)
     {
         // Get start of row
         for (unsigned int c=0; c<features.size(); ++c)
