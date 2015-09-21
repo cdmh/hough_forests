@@ -26,10 +26,10 @@ public:
     CRForest(CRForest &) = delete;  // it's not safe to copy a forest
 
 	// Set/Get functions
-	void SetTrees(int n) {vTrees.resize(n);}
-	size_t GetSize() const {return vTrees.size();}
+	size_t       GetSize() const {return vTrees.size();}
 	unsigned int GetDepth() const {return vTrees[0]->GetDepth();}
 	size_t       GetNumCenter() const {return vTrees[0]->GetNumCenter();}
+	void         SetTrees(int n) {vTrees.resize(n);}
 	
 	// Regression 
 	void regression(std::vector<const LeafNode*>& result, uchar** ptFCh, int stepImg) const;
@@ -39,7 +39,9 @@ public:
 
 	// IO functions
 	void saveForest(const char* filename, unsigned int offset = 0, int type = 0);
+	void saveForest(std::ofstream &out);
 	void loadForest(const char* filename, int type = 0);
+	void loadForest(std::ifstream &in);
 	void show(int w, int h) const {vTrees[0]->showLeaves(w,h);}
 
 	// Trees
@@ -83,14 +85,19 @@ inline void CRForest::saveForest(const char* filename, unsigned int offset, int 
     }
     else if (type == 1  ||  type == 2)
     {
-        // composite forest storage // CDMH
         std::ofstream out(filename, std::ios_base::out | std::ios::binary);
-        size_t const size = vTrees.size();
-        out.write((char const *)&size, sizeof(size));
-	    for(unsigned int i=0; i<vTrees.size(); ++i) {
-		    vTrees[i]->save(out);
-	    }
+        saveForest(out);
     }
+}
+
+inline void CRForest::saveForest(std::ofstream &out)
+{
+    // composite forest storage // CDMH
+    size_t const size = vTrees.size();
+    out.write((char const *)&size, sizeof(size));
+	for(unsigned int i=0; i<vTrees.size(); ++i) {
+		vTrees[i]->save(out);
+	}
 }
 
 inline void CRForest::loadForest(const char* filename, int type)
@@ -105,14 +112,19 @@ inline void CRForest::loadForest(const char* filename, int type)
     }
     else if (type == 1  ||  type == 2)
     {
-        // composite forest storage // CDMH
-        std::ifstream in(filename, std::ios_base::in | ((type == 2)? std::ios::binary : 0));
-        size_t size;
-        in.read((char *)&size, sizeof(size));
-        vTrees.resize(size);
-	    for(unsigned int i=0; i<vTrees.size(); ++i)
-		    vTrees[i] = new CRTree(in);
+        std::ifstream in(filename, std::ios_base::in | std::ios::binary);
+        loadForest(in);
     }
+}
+
+inline void CRForest::loadForest(std::ifstream &in)
+{
+    // composite forest storage // CDMH
+    size_t size;
+    in.read((char *)&size, sizeof(size));
+    vTrees.resize(size);
+	for(unsigned int i=0; i<vTrees.size(); ++i)
+		vTrees[i] = new CRTree(in);
 }
 
 }   // namespace gall
