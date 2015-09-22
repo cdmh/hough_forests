@@ -111,6 +111,7 @@ cv::Mat GLCM(cv::Mat img)
 }
 
 // inspired by https://github.com/rahul411/GLCM-parameters-using-Opencv-Library/blob/master/glcm_parameters.cpp
+inline
 float const GLCM_contrast(cv::Mat const &img)
 {
     cv::Mat glcm = GLCM(img);
@@ -152,8 +153,15 @@ void CRPatch::extract_patches_of_texture(
         throw std::runtime_error("Too many samples at " + std::string(__FILE__) + " (" + std::to_string(__LINE__) + ')');
 	vLPatches[LABEL_POSITIVE].reserve(offset+n);
 
-	// generate x,y locations
+#define USE_GRID
+
+#ifdef USE_GRID
+    n = (vImg[0]->width / width) * (vImg[0]->height / height);
+    int const rnds = n;
+#else
     int const rnds = n * 4;
+#endif
+	// generate x,y locations
 	CvMat *locations = cvCreateMat(rnds, 1, CV_32SC2);
 
 #if DEBUG_VISUALISE
@@ -161,33 +169,47 @@ void CRPatch::extract_patches_of_texture(
 #endif
     size_t negatives = 0;
     size_t positives = 0;
+#ifndef USE_GRID
 	for (int loop=0; loop<5  &&  positives < n; ++loop)
+#endif
     {
+        int rnd = 0;
+#ifdef USE_GRID
+box;    // unused (for now -- should use box and not 0,0 and vImg size)
+        // wobbly grid at random offsets
+		cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(width/2,height/2,0,0));
+
+        for (int offsety=0; offsety<vImg[0]->height-height; offsety+=height)
+        for (int offsetx=0; offsetx<vImg[0]->width-width; offsetx+=width)
+        {
+		    CvPoint pt = *(CvPoint *)cvPtr1D(locations, rnd++, 0);
+            pt.x += offsetx;
+            pt.y += offsety;
+#else
 	    if (box == 0)
 		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(vImg[0]->width-width,vImg[0]->height-height,0,0));
 	    else
 		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(box->x,box->y,0,0), cvScalar(box->x+box->width-width,box->y+box->height-height,0,0));
 
-        int rnd = 0;
 	    while (positives < n  &&  rnd < rnds)
         {
-		    CvPoint pt = *(CvPoint*)cvPtr1D( locations, rnd++, 0 );
-
+		    CvPoint pt = *(CvPoint*)cvPtr1D(locations, rnd++, 0);
+#endif
             int label;
             cv::Mat const patch    = image(cv::Rect(pt, cv::Size(width,height)));
             float   const contrast = GLCM_contrast(patch);
-            if (contrast > 0.75f)
+            if (positives < n  &&  contrast > 0.20f)
             {
                 label = LABEL_POSITIVE;
                 ++positives;
             }
-            else if (negatives < (positives << 2))
+            else //if (negatives < (positives << 2))
             {
                 label = LABEL_NEGATIVE;
                 ++negatives;
             }
-            else
-                continue;   // limit negative training patches to 4x positive training patches
+            //else
+            //    continue;   // limit negative training patches to 4x positive training patches
 
             vLPatches[label].emplace_back(int(offset / n));
 		    PatchFeature &pf = vLPatches[label].back();
@@ -219,6 +241,11 @@ void CRPatch::extract_patches_of_texture(
     }
 
 	cvReleaseMat(&locations);
+
+    // pad the number of positive patches so that the
+    // contributor frame calculation is accurate
+    while (positives++ < n)
+        vLPatches[LABEL_POSITIVE].emplace_back();
 }
 
 void CRPatch::extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg) {
