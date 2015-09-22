@@ -288,14 +288,22 @@ void CRTree::makeLeaf(const std::vector<std::vector<const PatchFeature*> >& Trai
 	LeafNode* ptL = &leaf[num_leaf];
 
 	// Store data
-	ptL->pfg = TrainSet[1].size() / float(pnratio*TrainSet[0].size()+TrainSet[1].size());
-	ptL->roi.resize(TrainSet[1].size());
-	ptL->vCenter.resize(TrainSet[1].size());
-	ptL->src_indices.resize(TrainSet[1].size());
-	for(unsigned int i = 0; i<TrainSet[1].size(); ++i) {
-		ptL->roi[i]         = TrainSet[1][i]->roi;
-		ptL->vCenter[i]     = TrainSet[1][i]->center;
-        ptL->src_indices[i] = TrainSet[1][i]->src_index;
+	unsigned int num_positives = 0;
+    for (unsigned int i = 0; i<TrainSet[1].size(); ++i)
+        if (!TrainSet[1][i]->empty())
+            ++num_positives;
+
+	ptL->pfg = num_positives / float(pnratio*TrainSet[0].size()+num_positives);
+	ptL->roi.resize(num_positives);
+	ptL->vCenter.resize(num_positives);
+	ptL->src_indices.resize(num_positives);
+	for (unsigned int i = 0; i<num_positives; ++i) {
+        if (!TrainSet[1][i]->empty())
+        {
+		    ptL->roi[i]         = TrainSet[1][i]->roi;
+		    ptL->vCenter[i]     = TrainSet[1][i]->center;
+            ptL->src_indices[i] = TrainSet[1][i]->src_index;
+        }
 	}
 
 	// Increase leaf counter
@@ -393,14 +401,17 @@ void CRTree::evaluateTest(std::vector<std::vector<IntIndex> >& valSet, const int
 		valSet[l].resize(TrainSet[l].size());
 		for(unsigned int i=0;i<TrainSet[l].size();++i) {
 
-			// pointer to channel
-			CvMat const *ptC = TrainSet[l][i]->vPatch[test[4]];
-			// get pixel values 
-			int p1 = (int)*(uchar*)cvPtr2D( ptC, test[1], test[0]);
-			int p2 = (int)*(uchar*)cvPtr2D( ptC, test[3], test[2]);
+            if (!TrainSet[l][i]->empty())
+            {
+			    // pointer to channel
+			    CvMat const *ptC = TrainSet[l][i]->vPatch[test[4]];
+			    // get pixel values 
+			    int p1 = (int)*(uchar*)cvPtr2D( ptC, test[1], test[0]);
+			    int p2 = (int)*(uchar*)cvPtr2D( ptC, test[3], test[2]);
 		
-			valSet[l][i].val = p1 - p2;
-			valSet[l][i].index = i;			
+			    valSet[l][i].val = p1 - p2;
+			    valSet[l][i].index = i;
+            }
 		}
 		sort( valSet[l].begin(), valSet[l].end() );
 	}
