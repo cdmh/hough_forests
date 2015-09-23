@@ -16,11 +16,12 @@ using namespace std;
 
 std::vector<std::vector<cv::Mat>>
 CRForestDetector::accumulate_votes(
-    cv::Rect               const &roi,
-    std::vector<IplImage*> const &features,
-    std::vector<float>     const &ratios,
-    std::vector<IplImage*>       &imgDetect,
-    bool                   const inverted_forest_training) const
+    cv::Rect                         const &roi,
+    std::vector<IplImage*>           const &features,
+    std::vector<float>               const &ratios,
+    bool                             const inverted_forest_training,
+    std::function<bool (cv::Rect const &)> patch_selector,
+    std::vector<IplImage*>                 &imgDetect) const
 {
 #ifdef CR_PROGRESS
     cdmh::timer t("CRForestDetector::accumulate_votes");
@@ -73,6 +74,9 @@ CRForestDetector::accumulate_votes(
 
         for(int cx=startx; cx<=endx; ++cx)
         {
+            if (!patch_selector(cv::Rect(cx-width/2, cy-height/2, width, height)))
+                continue;
+
             // regression for a single patch
             crForest_.regression(result, ptFCh_row, stepImg);
             

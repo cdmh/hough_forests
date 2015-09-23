@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <boost/dynamic_bitset.hpp>
+#include <functional>
 #include "CRForest.h"
 
 namespace gall {
@@ -23,11 +23,12 @@ public:
     }
 
     std::vector<std::vector<cv::Mat>>
-    accumulate_votes(cv::Rect               const &roi,
-                     std::vector<IplImage*> const &features,
-                     std::vector<float>     const &ratios,
-                     std::vector<IplImage*>       &imgDetect,
-                     bool                   const inverted_forest_training) const;
+    accumulate_votes(cv::Rect                         const &roi,
+                     std::vector<IplImage*>           const &features,
+                     std::vector<float>               const &ratios,
+                     bool                             const inverted_forest_training,
+                     std::function<bool (cv::Rect const &)> patch_selector,
+                     std::vector<IplImage*>                 &imgDetect) const;
 
 private:
     CRForestDetector &operator=(CRForestDetector &&)      = delete;
