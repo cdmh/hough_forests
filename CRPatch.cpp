@@ -87,45 +87,6 @@ void CRPatch::extractPatches(vector<IplImage*> const &vImg, unsigned int n, int 
 	cvReleaseMat(&locations);
 }
 
-// inspired by https://github.com/rahul411/GLCM-parameters-using-Opencv-Library/blob/master/glcm_parameters.cpp
-cv::Mat GLCM(cv::Mat img)
-{
-    int rows = img.rows;
-    int cols = img.cols;
-    cv::Mat glcm = cv::Mat::zeros(256,256,CV_32FC1);
-  
-    if (img.channels() == 3)
-        cvtColor(img, img, cv::COLOR_BGR2GRAY);
-
-    for (int j=0; j<rows; j++)
-    {
-        for (int i=0; i<cols-1; i++)
-            glcm.at<float>(img.at<uchar>(j,i),img.at<uchar>(j,i+1)) = 1.f + glcm.at<float>(img.at<uchar>(j,i),img.at<uchar>(j,i+1));
-    }
-
-    // normalize glcm matrix
-    glcm = glcm + glcm.t();            
-    glcm = glcm / sum(glcm)[0];
- 
-    return glcm;
-}
-
-// inspired by https://github.com/rahul411/GLCM-parameters-using-Opencv-Library/blob/master/glcm_parameters.cpp
-inline
-float const GLCM_contrast(cv::Mat const &img)
-{
-    cv::Mat glcm = GLCM(img);
-  
-    float contrast = 0.0f;
-    for (int j=0; j<glcm.rows; j++)
-    {
-        for (int i=0; i<glcm.cols-1; i++)
-            contrast += (j-i) * (j-i) * glcm.at<float>(j,i);
-    }
- 
-    return contrast / float(img.cols * img.rows);
-}
-
 
 // re-implementation of CRPatch::extractPatches() that selects positive
 // and negative patches based on the GLCM contrast
@@ -196,9 +157,7 @@ box;    // unused (for now -- should use box and not 0,0 and vImg size)
 		    CvPoint pt = *(CvPoint*)cvPtr1D(locations, rnd++, 0);
 #endif
             int label;
-            cv::Mat const patch    = image(cv::Rect(pt, cv::Size(width,height)));
-            float   const contrast = GLCM_contrast(patch);
-            if (positives < n  &&  contrast > 0.20f)
+            if (positives < n  &&  select_as_positive_training_patch(image(cv::Rect(pt, cv::Size(width,height)))))
             {
                 label = LABEL_POSITIVE;
                 ++positives;
