@@ -144,8 +144,8 @@ box;    // unused (for now -- should use box and not 0,0 and vImg size)
         for (int offsetx=0; offsetx<vImg[0]->width-width; offsetx+=width)
         {
 		    CvPoint pt = *(CvPoint *)cvPtr1D(locations, rnd++, 0);
-            pt.x += offsetx;
-            pt.y += offsety;
+            pt.x = std::min(pt.x + offsetx, vImg[0]->width-width);
+            pt.y = std::min(pt.y + offsety, vImg[0]->height-height);
 #else
 	    if (box == 0)
 		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(vImg[0]->width-width,vImg[0]->height-height,0,0));
