@@ -85,7 +85,6 @@ struct PatchFeature {
 
     bool const empty() const { return src_index == -1; }
 
-    size_t               count = 0;
     int            const src_index;  // index of the src image in the full training
 	CvRect               roi;
 	std::vector<CvPoint> center;
