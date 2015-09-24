@@ -7,6 +7,7 @@
 #include <fstream>
 #include <highgui.h>
 #include <algorithm>
+#include <numeric>
 
 namespace gall {
 
@@ -62,6 +63,32 @@ CRTree::CRTree(ifstream &in)
     load(in);
 }
 
+void CRTree::stats() const
+{
+    size_t total_rois = 0;
+    size_t max_rois   = 0;
+    size_t min_rois   = std::numeric_limits<size_t>::max();
+    std::vector<size_t> sizes;
+    std::vector<size_t> frames;
+    for (unsigned l=0; l<num_leaf; ++l)
+    {
+        sizes.push_back(leaf[l].roi.size());
+        total_rois += leaf[l].roi.size();
+        min_rois   = std::min(min_rois, leaf[l].roi.size());
+        max_rois   = std::max(max_rois, leaf[l].roi.size());
+
+        frames.push_back(std::distance(leaf[l].src_indices.begin(), std::unique(leaf[l].src_indices.begin(), leaf[l].src_indices.end())));
+    }
+    std::sort(sizes.begin(), sizes.end());
+    std::cout << "  Leaves: " << num_leaf << '\n';
+    std::cout << "  Average regions per leaf : " << ((float)std::accumulate(sizes.cbegin(), sizes.cend(), size_t()) / num_leaf) << '\n';
+    std::cout << "  Fewest regions in a leaf : " << min_rois << '\n';
+    std::cout << "  Most regions in a leaf   : " << max_rois << '\n';
+    std::cout << "  Largest number of regions: ";
+    for (int i=0; i<20; ++i)
+        std::cout << *(sizes.crbegin()+i) << ' ';
+    std::cout << '\n';
+}
 
 /////////////////////// IO Function /////////////////////////////
 

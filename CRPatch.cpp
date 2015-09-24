@@ -171,7 +171,7 @@ box;    // unused (for now -- should use box and not 0,0 and vImg size)
             //    continue;   // limit negative training patches to 4x positive training patches
 
             vLPatches[label].emplace_back(int(offset / n));
-		    PatchFeature &pf = vLPatches[label].back();
+		    PatchFeature &pf = vLPatches[label].back();                 
 		    pf.roi.x = pt.x;
             pf.roi.y = pt.y;
 		    pf.roi.width = width;

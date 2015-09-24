@@ -95,9 +95,9 @@ public:
 	~CRTree() {delete[] leaf; delete[] treetable;}
 
 	// Set/Get functions
-	unsigned int GetDepth() const {return max_depth;}
-	size_t       GetNumCenter() const {return num_cp;}
-	unsigned int GetNumLeaves() const {return num_leaf;}
+	unsigned int    GetDepth()       const { return max_depth; }
+	size_t          GetNumCenter()   const { return num_cp;    }
+	unsigned int    GetNumLeaves()   const { return num_leaf;  }
 	LeafNode const &GetLeaf(int ndx) const { return leaf[ndx]; }
 
 	// Regression
@@ -113,6 +113,7 @@ public:
 		for(unsigned int l=0; l<num_leaf; ++l)
 			leaf[l].show(5000, width, height);
 	}
+    void stats() const;
 
 private: 
     bool const load(std::ifstream &in);

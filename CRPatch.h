@@ -85,12 +85,20 @@ struct PatchFeature {
 
     bool const empty() const { return src_index == -1; }
 
+    size_t               count = 0;
     int            const src_index;  // index of the src image in the full training
 	CvRect               roi;
 	std::vector<CvPoint> center;
 	std::vector<CvMat *> vPatch;
 
-    // not copyable because of the const index
+    // not copyable
+    PatchFeature(PatchFeature const &)            = delete;
+
+    // we need a move ctor to be storable in a vector<>
+    PatchFeature(PatchFeature &&other)            = default;
+
+    // not assignable because of the const index
+    PatchFeature &operator=(PatchFeature &&)      = delete;
     PatchFeature &operator=(PatchFeature const &) = delete;
 };
 

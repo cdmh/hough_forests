@@ -43,6 +43,7 @@ public:
 	void loadForest(const char* filename, int type = 0);
 	void loadForest(std::ifstream &in);
 	void show(int w, int h) const {vTrees[0]->showLeaves(w,h);}
+    void stats() const;
 
 	// Trees
 	std::vector<CRTree*> vTrees;
@@ -125,6 +126,15 @@ inline void CRForest::loadForest(std::ifstream &in)
     vTrees.resize(size);
 	for(unsigned int i=0; i<vTrees.size(); ++i)
 		vTrees[i] = new CRTree(in);
+}
+
+inline void CRForest::stats() const
+{
+	for(unsigned int i=0; i<vTrees.size(); ++i)
+    {
+        std::cout << "Tree " << i << '\n';
+		vTrees[i]->stats();
+    }
 }
 
 }   // namespace gall
