@@ -77,7 +77,11 @@ void CRTree::stats() const
         min_rois   = std::min(min_rois, leaf[l].roi.size());
         max_rois   = std::max(max_rois, leaf[l].roi.size());
 
-        frames.push_back(std::distance(leaf[l].src_indices.begin(), std::unique(leaf[l].src_indices.begin(), leaf[l].src_indices.end())));
+        // copy src_indices so std::unique can modify it
+        // -- note MSVC2015 doesn't throw an error modifying
+        //         leaf[l].src_indices, even though 'this' is const
+        std::vector<int> src_indices = leaf[l].src_indices;
+        frames.push_back(std::distance(src_indices.begin(), std::unique(src_indices.begin(), src_indices.end())));
     }
     std::sort(sizes.begin(), sizes.end());
     std::cout << "  Leaves: " << num_leaf << '\n';
