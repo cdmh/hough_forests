@@ -109,8 +109,8 @@ CRForestDetector::accumulate_votes(
 
                             // we don't know the original image size, so we resize as we go
                             // !!! this is inefficient, so could be fixed !!!
-                            int const mx = 1 + leaf->roi[ndx].x + leaf->roi[ndx].width;
-                            int const my = 1 + leaf->roi[ndx].y + leaf->roi[ndx].height;
+                            int const mx = leaf->roi[ndx].x + leaf->roi[ndx].width;
+                            int const my = leaf->roi[ndx].y + leaf->roi[ndx].height;
                             if (contrib[frame].cols < mx  ||  contrib[frame].rows < my)
                             {
                                 cv::Mat newimage = cv::Mat::zeros(std::max(my,contrib[frame].rows), std::max(mx,contrib[frame].cols), CV_32FC1);
@@ -120,8 +120,8 @@ CRForestDetector::accumulate_votes(
                             }
 
                             // add the weight to the original patch location
-                            for (int cy1=leaf->roi[ndx].y; cy1<=leaf->roi[ndx].y+leaf->roi[ndx].height; ++cy1)
-                                for (int cx1=leaf->roi[ndx].x; cx1<=leaf->roi[ndx].x+leaf->roi[ndx].width; ++cx1)
+                            for (int cy1=leaf->roi[ndx].y; cy1<leaf->roi[ndx].y+leaf->roi[ndx].height; ++cy1)
+                                for (int cx1=leaf->roi[ndx].x; cx1<leaf->roi[ndx].x+leaf->roi[ndx].width; ++cx1)
                                     contrib[frame].at<float>(cy1,cx1) += w;
 
                                 *(ptDet[c] + cx + cy*stepDet) += w;
