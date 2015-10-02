@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <iostream>
+#include <functional>
 
 #include "HoG.h"
 
@@ -54,20 +55,18 @@ float const GLCM_contrast(cv::Mat const &img)
 }
 
 inline
-bool const select_as_positive_training_patch(cv::Mat const &patch)
-{
-    return (GLCM_contrast(patch) > 0.20f);
-}
-
-inline
 bool select_positive_training_patch(cv::Mat const &image, cv::Rect const &roi, float scale)
 {
+    auto selector = [](cv::Mat const &patch) {
+        return (GLCM_contrast(patch) > 0.20f);
+    };
+
     if (scale == 1.f)
-        return select_as_positive_training_patch(image(roi));
+        return selector(image(roi));
 
     cv::Mat patch;
     cv::resize(image, patch, cv::Size(), scale, scale);
-    return select_as_positive_training_patch(
+    return selector(
         patch(
             cv::Rect(
                 cvRound(roi.x * scale),
@@ -117,6 +116,7 @@ public:
 	void extract_patches_of_texture(cv::Mat                 const &image,
                                     std::vector<IplImage *> const &vImg,
                                     unsigned int                   n,
+                                    std::function<bool (cv::Rect const &)> patch_selector,
                                     CvRect const          * const  box     = nullptr,
                                     std::vector<CvPoint>          *vCenter = nullptr);
 

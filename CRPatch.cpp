@@ -93,11 +93,12 @@ void CRPatch::extractPatches(vector<IplImage*> const &vImg, unsigned int n, int 
 // low contrast patches are added to the negative training set and the search
 // continues for high (less-low) contrast patches that
 void CRPatch::extract_patches_of_texture(
-    cv::Mat                const &image,
-    std::vector<IplImage*> const &vImg,
-    unsigned int                  n,
-    CvRect const         * const  box,
-    std::vector<CvPoint>         *vCenter)
+    cv::Mat                         const &image,
+    std::vector<IplImage*>          const &vImg,
+    unsigned int                           n,
+    std::function<bool (cv::Rect const &)> patch_selector,
+    CvRect const                  * const  box,
+    std::vector<CvPoint>                  *vCenter)
 {
     assert(vImg.size() != 0);
 
@@ -157,7 +158,7 @@ box;    // unused (for now -- should use box and not 0,0 and vImg size)
 		    CvPoint pt = *(CvPoint*)cvPtr1D(locations, rnd++, 0);
 #endif
             int label;
-            if (positives < n  &&  select_as_positive_training_patch(image(cv::Rect(pt, cv::Size(width,height)))))
+            if (positives < n  &&  patch_selector(cv::Rect(pt, cv::Size(width,height))))
             {
                 label = LABEL_POSITIVE;
                 ++positives;
@@ -199,13 +200,16 @@ box;    // unused (for now -- should use box and not 0,0 and vImg size)
 	    }
     }
 
+static int i=0;
+imwrite("wobbly-grid\\wobbly-grid-"+std::to_string(++i)+".png", visualise);
+
 	cvReleaseMat(&locations);
 
     // pad the number of positive patches so that the
     // contributor frame calculation is accurate
     while (positives++ < n)
         vLPatches[LABEL_POSITIVE].emplace_back();
-}
+ }
 
 void CRPatch::extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg) {
 
