@@ -428,8 +428,14 @@ bool CRTree::optimizeTest(
 }
 
 void CRTree::evaluateTest(std::vector<std::vector<IntIndex> >& valSet, const int* test, const std::vector<std::vector<const PatchFeature*> >& TrainSet) {
+    int const y1 = test[1];
+    int const x1 = test[0];
+    int const y2 = test[3];
+    int const x2 = test[2];
+
 	for(unsigned int l=0;l<TrainSet.size();++l) {
 		valSet[l].resize(TrainSet[l].size());
+        auto &val = valSet[l];
 		for(unsigned int i=0;i<TrainSet[l].size();++i) {
 
             if (!TrainSet[l][i]->empty())
@@ -437,14 +443,17 @@ void CRTree::evaluateTest(std::vector<std::vector<IntIndex> >& valSet, const int
 			    // pointer to channel
 			    CvMat const *ptC = TrainSet[l][i]->vPatch[test[4]];
 			    // get pixel values 
-			    int p1 = (int)*(uchar*)cvPtr2D( ptC, test[1], test[0]);
-			    int p2 = (int)*(uchar*)cvPtr2D( ptC, test[3], test[2]);
+                int const type      = CV_MAT_TYPE(ptC->type);
+                int const elem_size = CV_ELEM_SIZE(type);
+
+                int p1 = *(ptC->data.ptr + (size_t)y1*ptC->step + x1*elem_size);
+                int p2 = *(ptC->data.ptr + (size_t)y2*ptC->step + x2*elem_size);
 		
-			    valSet[l][i].val = p1 - p2;
-			    valSet[l][i].index = i;
+			    val[i].val = p1 - p2;
+			    val[i].index = i;
             }
 		}
-		sort( valSet[l].begin(), valSet[l].end() );
+		sort( val.begin(), val.end() );
 	}
 }
 
