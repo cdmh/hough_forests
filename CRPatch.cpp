@@ -9,8 +9,6 @@
 #include "timer.h"
 #endif
 
-#define DEBUG_VISUALISE 1
-
 #include <deque>
 
 #define _copysign copysign
@@ -129,12 +127,13 @@ void CRPatch::add_patch(
 // low contrast patches are added to the negative training set and the search
 // continues for high (less-low) contrast patches that
 void CRPatch::extract_patches_of_texture(
-    cv::Mat                         const &image,
+    cv::Mat                         const &/*image*/,
     std::vector<IplImage*>          const &vImg,
     unsigned int                           n,
     std::function<bool (cv::Rect const &)> patch_selector,
     bool                                   grid,
     std::vector<CvPoint>            const &vCenter,
+    patch_adder_t                          adder,
     CvRect const                  * const  box)
 {
     assert(vImg.size() != 0);
@@ -147,21 +146,20 @@ void CRPatch::extract_patches_of_texture(
         throw std::runtime_error("Too many samples at " + std::string(__FILE__) + " (" + std::to_string(__LINE__) + ')');
 	vLPatches[LABEL_POSITIVE].reserve(offset+n);
 
-#if DEBUG_VISUALISE
-    cv::Mat visualise = image.clone();
-#endif
+    int       rnd = 0;
+    int const rnds      = grid? (n = (vImg[0]->width / width) * (vImg[0]->height / height)) : n * 4;
+	CvMat    *locations = cvCreateMat(rnds, 1, CV_32SC2);
+    size_t    negatives = 0;
+    size_t    positives = 0;
 
-    int const rnds  = grid? (n = (vImg[0]->width / width) * (vImg[0]->height / height)) : n * 4;
-
-	// generate x,y locations
-	CvMat *locations = cvCreateMat(rnds, 1, CV_32SC2);
-
-    size_t negatives = 0;
-    size_t positives = 0;
+    if (!adder)
+    {
+        using namespace placeholders;
+        adder = std::bind(&CRPatch::add_patch, this, _1, _2, _3, _4, _5);
+    }
 
     std::function<void (std::function<void (cv::Point const &)>)> driver;
     
-    int rnd = 0;
     if (grid)
     {
         // loop over a grid call call our function for each top-left co-ordinate
@@ -212,15 +210,8 @@ void CRPatch::extract_patches_of_texture(
             ++negatives;
         }
 
-        add_patch(vImg, label, int(offset / n), pt, vCenter);
-
-#if DEBUG_VISUALISE
-        rectangle(visualise, vLPatches[label].back().roi, (label == LABEL_POSITIVE)? CV_RGB(0,255,0) : CV_RGB(255,0,0));
-#endif
+        adder(vImg, label, int(offset / n), pt, vCenter);
 	});
-
-static int i=0;
-imwrite("patch-selection\\patches-frame-"+std::to_string(++i)+".png", visualise);
 
 	cvReleaseMat(&locations);
 

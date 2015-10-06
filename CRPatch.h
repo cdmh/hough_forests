@@ -56,7 +56,18 @@ public:
 	void extractPatches(IplImage *img, unsigned int n, int label, CvRect const * const box = 0, std::vector<CvPoint>* vCenter = 0);
 
 	// Extract patches from feature channels
-	void extractPatches(std::vector<IplImage*> const &vImg, unsigned int n, int label, CvRect const * const box = 0, std::vector<CvPoint>* vCenter = 0);
+	void extractPatches(std::vector<IplImage*> const &vImg,
+                        unsigned int                  n,
+                        int                           label,
+                        CvRect const * const          box = 0,
+                        std::vector<CvPoint>         *vCenter = 0);
+
+
+    using patch_adder_t = std::function<void (std::vector<IplImage *> const &,
+                                              int,
+                                              int,
+                                              cv::Point const &,
+                                              std::vector<CvPoint> const &)>;
 
 	// Extract patches from feature channels, ignoring areas of low texture
 	void extract_patches_of_texture(cv::Mat                         const &image,
@@ -65,7 +76,8 @@ public:
                                     std::function<bool (cv::Rect const &)> patch_selector,
                                     bool                                   grid,
                                     std::vector<CvPoint>            const &vCenter,
-                                    CvRect const                  * const  box = nullptr);
+                                    patch_adder_t                          adder = {},
+                                    CvRect const                  * const  box   = nullptr);
 
 	// Extract features from image
 	static void extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg);
@@ -81,6 +93,8 @@ public:
 	static void minfilt(IplImage *src, unsigned int width);
 	static void minfilt(IplImage *src, IplImage *dst, unsigned int width);
 
+	int const width;
+	int const height;
     int const LABEL_POSITIVE = 1;
     int const LABEL_NEGATIVE = 0;
 	std::vector<std::vector<PatchFeature> > vLPatches;
@@ -89,8 +103,6 @@ private:
     CRPatch &operator=(CRPatch const &) = delete;
 
 private:
-	int const width;
-	int const height;
 	CvRNG rng;
 };
 
