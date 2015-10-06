@@ -21,6 +21,12 @@ struct PatchFeature {
 	explicit PatchFeature() : src_index{-1} {}
 	explicit PatchFeature(int frame) : src_index{frame} {}
 
+    ~PatchFeature()
+    {
+        for (auto &patch : vPatch)
+            cvReleaseMat(&patch);
+    }
+
     bool const empty() const { return src_index == -1; }
 
     int            const src_index;  // index of the src image in the full training
@@ -70,8 +76,7 @@ public:
                                               std::vector<CvPoint> const &)>;
 
 	// Extract patches from feature channels, ignoring areas of low texture
-	void extract_patches_of_texture(cv::Mat                         const &image,
-                                    std::vector<IplImage *>         const &vImg,
+	void extract_patches_of_texture(std::vector<IplImage *>         const &vImg,
                                     unsigned int                           n,
                                     std::function<bool (cv::Rect const &)> patch_selector,
                                     bool                                   grid,

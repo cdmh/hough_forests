@@ -127,7 +127,6 @@ void CRPatch::add_patch(
 // low contrast patches are added to the negative training set and the search
 // continues for high (less-low) contrast patches that
 void CRPatch::extract_patches_of_texture(
-    cv::Mat                         const &/*image*/,
     std::vector<IplImage*>          const &vImg,
     unsigned int                           n,
     std::function<bool (cv::Rect const &)> patch_selector,
