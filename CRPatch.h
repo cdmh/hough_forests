@@ -50,7 +50,7 @@ public:
         int                            label,
         int                            src_index,
         cv::Point const               &pt,
-        std::vector<CvPoint>          *vCenter);
+        std::vector<CvPoint>    const &vCenter);
 
 	// Extract patches from image
 	void extractPatches(IplImage *img, unsigned int n, int label, CvRect const * const box = 0, std::vector<CvPoint>* vCenter = 0);
@@ -63,8 +63,9 @@ public:
                                     std::vector<IplImage *>         const &vImg,
                                     unsigned int                           n,
                                     std::function<bool (cv::Rect const &)> patch_selector,
-                                    CvRect const                  * const  box     = nullptr,
-                                    std::vector<CvPoint>                  *vCenter = nullptr);
+                                    bool                                   grid,
+                                    std::vector<CvPoint>            const &vCenter,
+                                    CvRect const                  * const  box = nullptr);
 
 	// Extract features from image
 	static void extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg);

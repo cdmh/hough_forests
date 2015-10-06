@@ -93,7 +93,7 @@ void CRPatch::add_patch(
     int                            label,
     int                            src_index,
     cv::Point const               &pt,
-    std::vector<CvPoint>          *vCenter)
+    std::vector<CvPoint>    const &vCenter)
 {
 	int const offx = width  / 2; 
 	int const offy = height / 2;
@@ -107,11 +107,11 @@ void CRPatch::add_patch(
 
 	if (label == LABEL_POSITIVE)
     {
-		pf.center.resize(vCenter->size());
-		for (unsigned int c = 0; c<vCenter->size(); ++c)
+		pf.center.resize(vCenter.size());
+		for (unsigned int c = 0; c<vCenter.size(); ++c)
         {
-			pf.center[c].x = pt.x + offx - (*vCenter)[c].x;
-			pf.center[c].y = pt.y + offy - (*vCenter)[c].y;
+			pf.center[c].x = pt.x + offx - vCenter[c].x;
+			pf.center[c].y = pt.y + offy - vCenter[c].y;
 		}
 	}
 
@@ -133,8 +133,9 @@ void CRPatch::extract_patches_of_texture(
     std::vector<IplImage*>          const &vImg,
     unsigned int                           n,
     std::function<bool (cv::Rect const &)> patch_selector,
-    CvRect const                  * const  box,
-    std::vector<CvPoint>                  *vCenter)
+    bool                                   grid,
+    std::vector<CvPoint>            const &vCenter,
+    CvRect const                  * const  box)
 {
     assert(vImg.size() != 0);
 
@@ -146,70 +147,80 @@ void CRPatch::extract_patches_of_texture(
         throw std::runtime_error("Too many samples at " + std::string(__FILE__) + " (" + std::to_string(__LINE__) + ')');
 	vLPatches[LABEL_POSITIVE].reserve(offset+n);
 
-#define USE_GRID
-
-#ifdef USE_GRID
-    n = (vImg[0]->width / width) * (vImg[0]->height / height);
-    int const rnds = n;
-#else
-    int const rnds = n * 4;
-#endif
-	// generate x,y locations
-	CvMat *locations = cvCreateMat(rnds, 1, CV_32SC2);
-
 #if DEBUG_VISUALISE
     cv::Mat visualise = image.clone();
 #endif
+
+    int const rnds  = grid? (n = (vImg[0]->width / width) * (vImg[0]->height / height)) : n * 4;
+
+	// generate x,y locations
+	CvMat *locations = cvCreateMat(rnds, 1, CV_32SC2);
+
     size_t negatives = 0;
     size_t positives = 0;
-#ifndef USE_GRID
-	for (int loop=0; loop<5  &&  positives < n; ++loop)
-#endif
+
+    std::function<void (std::function<void (cv::Point const &)>)> driver;
+    
+    int rnd = 0;
+    if (grid)
     {
-        int rnd = 0;
-#ifdef USE_GRID
-box;    // unused (for now -- should use box and not 0,0 and vImg size)
-        // wobbly grid at random offsets
-		cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(width/2,height/2,0,0));
+        // loop over a grid call call our function for each top-left co-ordinate
+        driver = [&](std::function<void (cv::Point const &)> fn) {
+    box;    // unused (for now -- should use box and not 0,0 and vImg size)
+            // wobbly grid at random offsets
+		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(width/2,height/2,0,0));
 
-        for (int offsety=0; offsety<vImg[0]->height-height; offsety+=height)
-        for (int offsetx=0; offsetx<vImg[0]->width-width; offsetx+=width)
-        {
-		    CvPoint pt = *(CvPoint *)cvPtr1D(locations, rnd++, 0);
-            pt.x = std::min(pt.x + offsetx, vImg[0]->width-width);
-            pt.y = std::min(pt.y + offsety, vImg[0]->height-height);
-#else
-	    if (box == 0)
-		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(vImg[0]->width-width,vImg[0]->height-height,0,0));
-	    else
-		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(box->x,box->y,0,0), cvScalar(box->x+box->width-width,box->y+box->height-height,0,0));
-
-	    while (positives < n  &&  rnd < rnds)
-        {
-		    CvPoint pt = *(CvPoint*)cvPtr1D(locations, rnd++, 0);
-#endif
-            int label;
-            if (positives < n  &&  patch_selector(cv::Rect(pt, cv::Size(width,height))))
+            for (int offsety=0; offsety<vImg[0]->height-height; offsety+=height)
             {
-                label = LABEL_POSITIVE;
-                ++positives;
+                for (int offsetx=0; offsetx<vImg[0]->width-width; offsetx+=width)
+                {
+		            CvPoint pt = *(CvPoint *)cvPtr1D(locations, rnd++, 0);
+                    pt.x = std::min(pt.x + offsetx, vImg[0]->width-width);
+                    pt.y = std::min(pt.y + offsety, vImg[0]->height-height);
+                    fn(pt);
+                }
             }
-            else
+        };
+    }
+    else
+    {
+        // call our function for each random top-left co-ordinate in the image
+        driver = [&](std::function<void (cv::Point const &)> fn) {
+    	    for (int loop=0; loop<5 &&  positives < n; ++loop)
             {
-                label = LABEL_NEGATIVE;
-                ++negatives;
+	            if (box == 0)
+		            cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(vImg[0]->width-width,vImg[0]->height-height,0,0));
+	            else
+		            cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(box->x,box->y,0,0), cvScalar(box->x+box->width-width,box->y+box->height-height,0,0));
+
+	            while (positives < n  &&  rnd < rnds)
+		            fn(*(CvPoint*)cvPtr1D(locations, rnd++, 0));
             }
-
-            add_patch(vImg, label, int(offset / n), pt, vCenter);
-
-#if DEBUG_VISUALISE
-            rectangle(visualise, vLPatches[label].back().roi, (label == LABEL_POSITIVE)? CV_RGB(0,255,0) : CV_RGB(255,0,0));
-#endif
-	    }
+        };
     }
 
+    driver([&](cv::Point const &pt){
+        int label;
+        if (positives < n  &&  patch_selector(cv::Rect(pt, cv::Size(width,height))))
+        {
+            label = LABEL_POSITIVE;
+            ++positives;
+        }
+        else
+        {
+            label = LABEL_NEGATIVE;
+            ++negatives;
+        }
+
+        add_patch(vImg, label, int(offset / n), pt, vCenter);
+
+#if DEBUG_VISUALISE
+        rectangle(visualise, vLPatches[label].back().roi, (label == LABEL_POSITIVE)? CV_RGB(0,255,0) : CV_RGB(255,0,0));
+#endif
+	});
+
 static int i=0;
-imwrite("wobbly-grid\\wobbly-grid-"+std::to_string(++i)+".png", visualise);
+imwrite("patch-selection\\patches-frame-"+std::to_string(++i)+".png", visualise);
 
 	cvReleaseMat(&locations);
 
@@ -217,7 +228,7 @@ imwrite("wobbly-grid\\wobbly-grid-"+std::to_string(++i)+".png", visualise);
     // contributor frame calculation is accurate
     while (positives++ < n)
         vLPatches[LABEL_POSITIVE].emplace_back();
- }
+}
 
 void CRPatch::extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg) {
 
