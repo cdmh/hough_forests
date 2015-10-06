@@ -88,6 +88,42 @@ void CRPatch::extractPatches(vector<IplImage*> const &vImg, unsigned int n, int 
 }
 
 
+void CRPatch::add_patch(
+    std::vector<IplImage *> const &vImg,
+    int                            label,
+    int                            src_index,
+    cv::Point const               &pt,
+    std::vector<CvPoint>          *vCenter)
+{
+	int const offx = width  / 2; 
+	int const offy = height / 2;
+
+    vLPatches[label].emplace_back(src_index);
+	PatchFeature &pf = vLPatches[label].back();                 
+	pf.roi.x         = pt.x;
+    pf.roi.y         = pt.y;
+	pf.roi.width     = width;
+    pf.roi.height    = height; 
+
+	if (label == LABEL_POSITIVE)
+    {
+		pf.center.resize(vCenter->size());
+		for (unsigned int c = 0; c<vCenter->size(); ++c)
+        {
+			pf.center[c].x = pt.x + offx - (*vCenter)[c].x;
+			pf.center[c].y = pt.y + offy - (*vCenter)[c].y;
+		}
+	}
+
+	pf.vPatch.resize(vImg.size());
+	for (unsigned int c=0; c<vImg.size(); ++c)
+    {
+        CvMat tmp;
+		cvGetSubRect(vImg[c], &tmp,  pf.roi);
+		pf.vPatch[c] = cvCloneMat(&tmp);
+    }
+}
+
 // re-implementation of CRPatch::extractPatches() that selects positive
 // and negative patches based on the GLCM contrast
 // low contrast patches are added to the negative training set and the search
@@ -101,11 +137,6 @@ void CRPatch::extract_patches_of_texture(
     std::vector<CvPoint>                  *vCenter)
 {
     assert(vImg.size() != 0);
-
-	int const offx           = width/2; 
-	int const offy           = height/2;
-    int const LABEL_POSITIVE = 1;
-    int const LABEL_NEGATIVE = 0;
 
 	// reserve memory
 	size_t offset = vLPatches[LABEL_POSITIVE].size();
@@ -163,40 +194,17 @@ box;    // unused (for now -- should use box and not 0,0 and vImg size)
                 label = LABEL_POSITIVE;
                 ++positives;
             }
-            else //if (negatives < (positives << 2))
+            else
             {
                 label = LABEL_NEGATIVE;
                 ++negatives;
             }
-            //else
-            //    continue;   // limit negative training patches to 4x positive training patches
 
-            vLPatches[label].emplace_back(int(offset / n));
-		    PatchFeature &pf = vLPatches[label].back();                 
-		    pf.roi.x = pt.x;
-            pf.roi.y = pt.y;
-		    pf.roi.width = width;
-            pf.roi.height = height; 
+            add_patch(vImg, label, int(offset / n), pt, vCenter);
 
-		    if (label == LABEL_POSITIVE)
-            {
-			    pf.center.resize(vCenter->size());
-			    for (unsigned int c = 0; c<vCenter->size(); ++c)
-                {
-				    pf.center[c].x = pt.x + offx - (*vCenter)[c].x;
-				    pf.center[c].y = pt.y + offy - (*vCenter)[c].y;
-			    }
-		    }
 #if DEBUG_VISUALISE
-            rectangle(visualise, pf.roi, (label == LABEL_POSITIVE)? CV_RGB(0,255,0) : CV_RGB(255,0,0));
+            rectangle(visualise, vLPatches[label].back().roi, (label == LABEL_POSITIVE)? CV_RGB(0,255,0) : CV_RGB(255,0,0));
 #endif
-
-		    pf.vPatch.resize(vImg.size());
-		    for (unsigned int c=0; c<vImg.size(); ++c) {
-        	    CvMat tmp;
-			    cvGetSubRect( vImg[c], &tmp,  pf.roi );
-			    pf.vPatch[c] = cvCloneMat(&tmp);
-            }
 	    }
     }
 

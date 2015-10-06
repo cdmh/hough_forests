@@ -45,6 +45,13 @@ class CRPatch {
 public:
 	CRPatch(CvRNG rng, int w, int h, int num_l) : rng(rng), width(w), height(h) { vLPatches.resize(num_l);}
 
+    void add_patch(
+        std::vector<IplImage *> const &vImg,
+        int                            label,
+        int                            src_index,
+        cv::Point const               &pt,
+        std::vector<CvPoint>          *vCenter);
+
 	// Extract patches from image
 	void extractPatches(IplImage *img, unsigned int n, int label, CvRect const * const box = 0, std::vector<CvPoint>* vCenter = 0);
 
@@ -73,6 +80,8 @@ public:
 	static void minfilt(IplImage *src, unsigned int width);
 	static void minfilt(IplImage *src, IplImage *dst, unsigned int width);
 
+    int const LABEL_POSITIVE = 1;
+    int const LABEL_NEGATIVE = 0;
 	std::vector<std::vector<PatchFeature> > vLPatches;
 
 private:
