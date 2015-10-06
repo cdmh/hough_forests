@@ -35,7 +35,7 @@ public:
 	void regression(std::vector<const LeafNode*>& result, uchar** ptFCh, int stepImg) const;
 
 	// Training
-	void trainForest(int min_s, int max_d, CvRNG rng, const CRPatch& TrData, int samples);
+	bool const trainForest(int min_s, int max_d, CvRNG rng, const CRPatch& TrData, int samples);
 
 	// IO functions
 	void saveForest(const char* filename, unsigned int offset = 0, int type = 0);
@@ -58,8 +58,17 @@ inline void CRForest::regression(std::vector<const LeafNode*>& result, uchar** p
 }
 
 //Training
-inline void CRForest::trainForest(int min_s, int max_d, CvRNG rng, const CRPatch& TrData, int samples)
+inline bool const CRForest::trainForest(int min_s, int max_d, CvRNG rng, const CRPatch& TrData, int samples)
 {
+    for (auto const &patches : TrData.vLPatches)
+    {
+        if (patches.size() == 0)
+        {
+            std::cerr << "Unable to train forest -- missing training data";
+            return false;
+        }
+    }
+
     // not thread safe because of the RNG
     for(int i=0; i < (int)vTrees.size(); ++i)
         vTrees[i] = new CRTree(min_s, max_d, TrData.vLPatches[1][0].center.size(), cvRandInt(&rng));
@@ -72,6 +81,7 @@ inline void CRForest::trainForest(int min_s, int max_d, CvRNG rng, const CRPatch
                   << i     << " trained to depth: "
                   << depth << " (max depth=" << max_d << ")\n";
     }
+    return true;
 }
 
 // IO Functions
