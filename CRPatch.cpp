@@ -167,9 +167,9 @@ void CRPatch::extract_patches_of_texture(
             // wobbly grid at random offsets
 		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(width/2,height/2,0,0));
 
-            for (int offsety=0; offsety<vImg[0]->height-height; offsety+=height)
+            for (int offsety=0; offsety<vImg[0]->height-height/2; offsety+=height)
             {
-                for (int offsetx=0; offsetx<vImg[0]->width-width; offsetx+=width)
+                for (int offsetx=0; offsetx<vImg[0]->width-width/2; offsetx+=width)
                 {
 		            CvPoint pt = *(CvPoint *)cvPtr1D(locations, rnd++, 0);
                     pt.x = std::min(pt.x + offsetx, vImg[0]->width-width);
