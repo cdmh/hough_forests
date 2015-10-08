@@ -146,7 +146,7 @@ void CRPatch::extract_patches_of_texture(
 	vLPatches[LABEL_POSITIVE].reserve(offset+n);
 
     int       rnd = 0;
-    int const rnds      = grid? (n = (vImg[0]->width / width) * (vImg[0]->height / height)) : n * 4;
+    int const rnds      = grid? (n = (1 + vImg[0]->width / width) * (1 + vImg[0]->height / height)) : n * 4;
 	CvMat    *locations = cvCreateMat(rnds, 1, CV_32SC2);
     size_t    negatives = 0;
     size_t    positives = 0;
