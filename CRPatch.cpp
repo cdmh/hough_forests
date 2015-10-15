@@ -163,17 +163,19 @@ void CRPatch::extract_patches_of_texture(
     {
         // loop over a grid call call our function for each top-left co-ordinate
         driver = [&](std::function<void (cv::Point const &)> fn) {
-    box;    // unused (for now -- should use box and not 0,0 and vImg size)
+            // unused (for now -- should use box and not 0,0 and vImg size)
+            box;
+
             // wobbly grid at random offsets
-		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(0,0,0,0), cvScalar(width/2,height/2,0,0));
+		    cvRandArr(&rng, locations, CV_RAND_UNI, cvScalar(-width/4,-height/4,0,0), cvScalar(width/4,height/4,0,0));
 
             for (int offsety=0; offsety<vImg[0]->height-height/2; offsety+=height)
             {
                 for (int offsetx=0; offsetx<vImg[0]->width-width/2; offsetx+=width)
                 {
 		            CvPoint pt = *(CvPoint *)cvPtr1D(locations, rnd++, 0);
-                    pt.x = std::min(pt.x + offsetx, vImg[0]->width-width);
-                    pt.y = std::min(pt.y + offsety, vImg[0]->height-height);
+                    pt.x = std::max(0, std::min(pt.x + offsetx, vImg[0]->width-width));
+                    pt.y = std::max(0, std::min(pt.y + offsety, vImg[0]->height-height));
                     fn(pt);
                 }
             }

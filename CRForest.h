@@ -64,7 +64,7 @@ inline bool const CRForest::trainForest(int min_s, int max_d, CvRNG rng, const C
     {
         if (patches.size() == 0)
         {
-            std::cerr << "Unable to train forest -- missing training data";
+            std::cerr << "Unable to train forest -- missing training data\n";
             return false;
         }
     }
