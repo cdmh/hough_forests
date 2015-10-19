@@ -319,21 +319,26 @@ void CRTree::makeLeaf(const std::vector<std::vector<const PatchFeature*> >& Trai
 	LeafNode* ptL = &leaf[num_leaf];
 
 	// Store data
-	unsigned int num_positives = 0;
+	unsigned int num_positives = 0;     // !!! this should be a member variable, calculated once !!!
     for (unsigned int i = 0; i<TrainSet[1].size(); ++i)
+    {
         if (!TrainSet[1][i]->empty())
             ++num_positives;
+    }
 
 	ptL->pfg = num_positives / float(pnratio*TrainSet[0].size()+num_positives);
 	ptL->roi.resize(num_positives);
 	ptL->vCenter.resize(num_positives);
 	ptL->src_indices.resize(num_positives);
-	for (unsigned int i = 0; i<num_positives; ++i) {
+    unsigned ndx = 0;
+    for (unsigned int i = 0; i<TrainSet[1].size(); ++i)
+    {
         if (!TrainSet[1][i]->empty())
         {
-		    ptL->roi[i]         = TrainSet[1][i]->roi;
-		    ptL->vCenter[i]     = TrainSet[1][i]->center;
-            ptL->src_indices[i] = TrainSet[1][i]->src_index;
+		    ptL->roi[ndx]         = TrainSet[1][i]->roi;
+		    ptL->vCenter[ndx]     = TrainSet[1][i]->center;
+            ptL->src_indices[ndx] = TrainSet[1][i]->src_index;
+            ++ndx;
         }
 	}
 
