@@ -326,21 +326,23 @@ void CRTree::makeLeaf(const std::vector<std::vector<const PatchFeature*> >& Trai
             ++num_positives;
     }
 
-	ptL->pfg = num_positives / float(pnratio*TrainSet[0].size()+num_positives);
-	ptL->roi.resize(num_positives);
-	ptL->vCenter.resize(num_positives);
-	ptL->src_indices.resize(num_positives);
-    unsigned ndx = 0;
-    for (unsigned int i = 0; i<TrainSet[1].size(); ++i)
+    if (num_positives > 0)
     {
-        if (!TrainSet[1][i]->empty())
+	    ptL->pfg = num_positives / float(pnratio*TrainSet[0].size()+num_positives);
+	    ptL->roi.resize(num_positives);
+	    ptL->vCenter.resize(num_positives);
+	    ptL->src_indices.resize(num_positives);
+        for (unsigned int i=0, ndx=0; i<TrainSet[1].size(); ++i)
         {
-		    ptL->roi[ndx]         = TrainSet[1][i]->roi;
-		    ptL->vCenter[ndx]     = TrainSet[1][i]->center;
-            ptL->src_indices[ndx] = TrainSet[1][i]->src_index;
-            ++ndx;
-        }
-	}
+            if (!TrainSet[1][i]->empty())
+            {
+		        ptL->roi[ndx]         = TrainSet[1][i]->roi;
+		        ptL->vCenter[ndx]     = TrainSet[1][i]->center;
+                ptL->src_indices[ndx] = TrainSet[1][i]->src_index;
+                ++ndx;
+            }
+	    }
+    }
 
 	// Increase leaf counter
 	++num_leaf;
