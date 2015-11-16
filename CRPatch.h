@@ -49,6 +49,8 @@ static HoG hog;
 
 class CRPatch {
 public:
+    enum patch_positioning { RANDOM=1000, WOBBLY_GRID, DENSE_WOBBLY_GRID };
+
 	CRPatch(CvRNG rng, int w, int h, int num_l) : rng(rng), width(w), height(h) { vLPatches.resize(num_l);}
 
     void add_patch(
@@ -79,7 +81,7 @@ public:
 	void extract_patches_of_texture(std::vector<IplImage *>         const &vImg,
                                     unsigned int                           n,
                                     std::function<bool (cv::Rect const &)> patch_selector,
-                                    bool                                   grid,
+                                    patch_positioning                      positioning,
                                     std::vector<CvPoint>            const &vCenter,
                                     patch_adder_t                          adder = {},
                                     CvRect const                  * const  box   = nullptr);

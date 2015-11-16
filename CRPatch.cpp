@@ -130,12 +130,15 @@ void CRPatch::extract_patches_of_texture(
     std::vector<IplImage*>          const &vImg,
     unsigned int                           n,
     std::function<bool (cv::Rect const &)> patch_selector,
-    bool                                   grid,
+    patch_positioning                      positioning,
     std::vector<CvPoint>            const &vCenter,
     patch_adder_t                          adder,
     CvRect const                  * const  box)
 {
     assert(vImg.size() != 0);
+    assert(positioning != DENSE_WOBBLY_GRID);            // Dense wobbly grid is not supported here, just random or wobbly grid
+
+    bool const grid = (positioning == DENSE_WOBBLY_GRID)  ||  (positioning == WOBBLY_GRID);
 
 	// reserve memory
 	size_t offset = vLPatches[LABEL_POSITIVE].size();
@@ -143,13 +146,13 @@ void CRPatch::extract_patches_of_texture(
         throw std::runtime_error("Too many images at " + std::string(__FILE__) + " (" + std::to_string(__LINE__) + ')');
     if (n > (unsigned)std::numeric_limits<int>::max())
         throw std::runtime_error("Too many samples at " + std::string(__FILE__) + " (" + std::to_string(__LINE__) + ')');
-	vLPatches[LABEL_POSITIVE].reserve(offset+n);
 
     int       rnd = 0;
     int const rnds      = grid? (n = (1 + vImg[0]->width / width) * (1 + vImg[0]->height / height)) : n * 4;
 	CvMat    *locations = cvCreateMat(rnds, 1, CV_32SC2);
     size_t    negatives = 0;
     size_t    positives = 0;
+	vLPatches[LABEL_POSITIVE].reserve(offset+n);
 
     if (!adder)
     {
