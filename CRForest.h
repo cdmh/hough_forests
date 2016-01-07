@@ -41,7 +41,7 @@ public:
 	void saveForest(const char* filename, unsigned int offset = 0, int type = 0);
 	void saveForest(std::ofstream &out);
 	void loadForest(const char* filename, int type = 0);
-	void loadForest(std::ifstream &in);
+	void loadForest(std::ifstream &in, size_t num_trees = 0);
 	void show(int w, int h) const {vTrees[0]->showLeaves(w,h);}
     void stats() const;
 
@@ -128,7 +128,7 @@ inline void CRForest::loadForest(const char* filename, int type)
     }
 }
 
-inline void CRForest::loadForest(std::ifstream &in)
+inline void CRForest::loadForest(std::ifstream &in, size_t)
 {
     // composite forest storage // CDMH
     size_t size;
