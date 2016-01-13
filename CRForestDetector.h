@@ -30,8 +30,6 @@ public:
                      std::function<bool (cv::Rect const &)> patch_selector,
                      std::vector<IplImage*>                 &imgDetect) const;
 
-    void update_weights(cv::Rect const &, std::vector<IplImage *> const &) const { }
-
 private:
     CRForestDetector &operator=(CRForestDetector &&)      = delete;
     CRForestDetector &operator=(CRForestDetector const &) = delete;
