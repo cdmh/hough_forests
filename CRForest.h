@@ -40,10 +40,19 @@ public:
 	// IO functions
 	void saveForest(const char* filename, unsigned int offset = 0, int type = 0);
 	void saveForest(std::ofstream &out);
-	void loadForest(const char* filename, int type = 0);
-	void loadForest(std::ifstream &in, size_t num_trees = 0);
 	void show(int w, int h) const {vTrees[0]->showLeaves(w,h);}
     void stats() const;
+
+    template<typename T>
+    void CRForest::loadForest(std::ifstream &in, T const &)
+    {
+        // composite forest storage // CDMH
+        size_t size;
+        in.read((char *)&size, sizeof(size));
+        vTrees.resize(size);
+	    for(unsigned int i=0; i<vTrees.size(); ++i)
+		    vTrees[i] = new CRTree(in);
+    }
 
 	// Trees
 	std::vector<CRTree*> vTrees;
@@ -109,33 +118,6 @@ inline void CRForest::saveForest(std::ofstream &out)
 	for(unsigned int i=0; i<vTrees.size(); ++i) {
 		vTrees[i]->save(out);
 	}
-}
-
-inline void CRForest::loadForest(const char* filename, int type)
-{
-    if (type == 0)
-    {
-	    char buffer[200];
-	    for(unsigned int i=0; i<vTrees.size(); ++i) {
-		    sprintf_s(buffer,"%s%03u.txt",filename,i);
-		    vTrees[i] = new CRTree(buffer);
-	    }
-    }
-    else if (type == 1  ||  type == 2)
-    {
-        std::ifstream in(filename, std::ios_base::in | std::ios::binary);
-        loadForest(in);
-    }
-}
-
-inline void CRForest::loadForest(std::ifstream &in, size_t)
-{
-    // composite forest storage // CDMH
-    size_t size;
-    in.read((char *)&size, sizeof(size));
-    vTrees.resize(size);
-	for(unsigned int i=0; i<vTrees.size(); ++i)
-		vTrees[i] = new CRTree(in);
 }
 
 inline void CRForest::stats() const
