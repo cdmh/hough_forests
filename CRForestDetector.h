@@ -5,6 +5,10 @@
 
 #pragma once
 
+#ifndef HAS_GALL
+#define HAS_GALL
+#endif
+
 #include <functional>
 #include "CRForest.h"
 

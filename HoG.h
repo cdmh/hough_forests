@@ -5,8 +5,11 @@
 
 #pragma once
 
-#include <cxcore.h>
+#ifndef HAS_GALL
+#define HAS_GALL
+#endif
 
+#include <cxcore.h>
 #include <vector>
 
 namespace gall {

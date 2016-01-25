@@ -5,6 +5,10 @@
 
 #pragma once
 
+#ifndef HAS_GALL
+#define HAS_GALL
+#endif
+
 #ifndef _MSC_VER
 #define sprintf_s sprintf 
 #endif

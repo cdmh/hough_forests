@@ -5,6 +5,10 @@
 
 #pragma once
 
+#ifndef HAS_GALL
+#define HAS_GALL
+#endif
+
 #include "CRTree.h"
 
 #include <vector>
@@ -31,6 +35,16 @@ public:
 	size_t       GetNumCenter() const {return vTrees[0]->GetNumCenter();}
 	void         SetTrees(int n) {vTrees.resize(n);}
 	
+    unsigned num_leaves(size_t tree) const
+    {
+        return vTrees[tree]->GetNumLeaves();
+    }
+
+    LeafNode const &leaf(size_t tree, int ndx) const
+    {
+        return vTrees[tree]->GetLeaf(ndx);
+    }
+
 	// Regression 
 	void regression(std::vector<const LeafNode*>& result, uchar** ptFCh, int stepImg) const;
 
@@ -43,8 +57,7 @@ public:
 	void show(int w, int h) const {vTrees[0]->showLeaves(w,h);}
     void stats() const;
 
-    template<typename T>
-    void CRForest::loadForest(std::ifstream &in, T const &)
+    void CRForest::loadForest(std::ifstream &in)
     {
         // composite forest storage // CDMH
         size_t size;
