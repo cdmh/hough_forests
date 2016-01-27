@@ -55,7 +55,7 @@ class CRPatch {
 public:
     enum patch_positioning { RANDOM=1000, WOBBLY_GRID, DENSE_WOBBLY_GRID };
 
-	CRPatch(CvRNG rng, int w, int h, int num_l) : rng(rng), width(w), height(h) { vLPatches.resize(num_l);}
+    CRPatch(CvRNG rng, int w, int h, int num_l) : rng(rng), width(w), height(h) { vLPatches.resize(num_l);}
 
     void add_patch(
         std::vector<IplImage *> const &vImg,
@@ -104,8 +104,14 @@ public:
 	static void minfilt(IplImage *src, unsigned int width);
 	static void minfilt(IplImage *src, IplImage *dst, unsigned int width);
 
-	int const width;
-	int const height;
+    // for template compatibility
+	CRPatch(CvRNG)                   { throw std::runtime_error("NOT IMPLEMENTED"); }
+    void training_data(CRPatch &&)   { throw std::runtime_error("NOT IMPLEMENTED"); }
+    void read(std::istream &)  const { throw std::runtime_error("NOT IMPLEMENTED"); }
+    void write(std::ostream &) const { throw std::runtime_error("NOT IMPLEMENTED"); }
+
+	int const width          = -1;
+	int const height         = -1;
     int const LABEL_POSITIVE = 1;
     int const LABEL_NEGATIVE = 0;
 	std::vector<std::vector<PatchFeature> > vLPatches;

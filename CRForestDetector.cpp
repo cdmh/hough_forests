@@ -35,23 +35,23 @@ void CRForestDetector::accumulate_votes(
         throw std::runtime_error("Regression image is smaller than the patch size");
 
     // reset output image
-    for(int c=0; c<(int)imgDetect.size(); ++c)
-        cvSetZero( imgDetect[c] );
+    for (int c=0; c<(int)imgDetect.size(); ++c)
+        cvSetZero(imgDetect[c]);
 
     // get pointers to feature channels
     int stepImg = 0;
     uchar** ptFCh     = new uchar*[features.size()];
     uchar** ptFCh_row = new uchar*[features.size()];
-	for(unsigned int c=0; c<features.size(); ++c) {
-        cvGetRawData( features[c], (uchar**)&(ptFCh[c]), &stepImg);
-	}
+    for (unsigned int c=0; c<features.size(); ++c) {
+        cvGetRawData(features[c], (uchar**)&(ptFCh[c]), &stepImg);
+    }
     stepImg /= sizeof(ptFCh[0][0]);
 
     // get pointer to output image
     int stepDet = 0;
     float** ptDet = new float*[imgDetect.size()];
-    for(unsigned int c=0; c<imgDetect.size(); ++c)
-        cvGetRawData( imgDetect[c], (uchar**)&(ptDet[c]), &stepDet);
+    for (unsigned int c=0; c<imgDetect.size(); ++c)
+        cvGetRawData(imgDetect[c], (uchar**)&(ptDet[c]), &stepDet);
     stepDet /= sizeof(ptDet[0][0]);
 
     int const startx = roi.x + width  / 2;
@@ -60,14 +60,14 @@ void CRForestDetector::accumulate_votes(
     int const endy   = roi.y - height / 2 + roi.height;
 
     // cx,cy center of patch
-	vector<const LeafNode*> result(crForest_.GetSize());
+    vector<const LeafNode*> result(crForest_.GetSize());
     for (int cy=starty; cy<=endy; ++cy)
     {
         // Get start of row
         for (unsigned int c=0; c<features.size(); ++c)
             ptFCh_row[c] = &ptFCh[c][0];
 
-        for(int cx=startx; cx<=endx; ++cx)
+        for (int cx=startx; cx<=endx; ++cx)
         {
             if (!patch_selector(cv::Rect(cx-width/2, cy-height/2, width, height)))
                 continue;
@@ -99,24 +99,23 @@ void CRForestDetector::accumulate_votes(
                         if (x>=0  &&  y>=0  &&  x<imgDetect[c]->width  &&  y<imgDetect[c]->height)
                             *(ptDet[c] + x + y*stepDet) += w;
                     }
-                } // end if
+                }
             }
 
             // increase pointer - x
-            for(unsigned int c=0; c<features.size(); ++c)
+            for (unsigned int c=0; c<features.size(); ++c)
                 ++ptFCh_row[c];
-
-        } // end for x
+        }
 
         // increase pointer - y
-        for(unsigned int c=0; c<features.size(); ++c)
+        for (unsigned int c=0; c<features.size(); ++c)
             ptFCh[c] += stepImg;
 
     } // end for y 	
 
     // smooth result image
-	for(auto &i: imgDetect)
-		cvSmooth(i, i, CV_GAUSSIAN, 3);
+    for (auto &i: imgDetect)
+        cvSmooth(i, i, CV_GAUSSIAN, 3);
 
     delete[] ptFCh;
     delete[] ptFCh_row;
