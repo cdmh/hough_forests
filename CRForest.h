@@ -68,10 +68,6 @@ public:
     }
 
 
-    // for template compatibility
-    CRPatch  &training_data() const  { throw std::runtime_error("NOT IMPLEMENTED"); }
-    void training_data(CRPatch &&)   { throw std::runtime_error("NOT IMPLEMENTED"); }
-
 	// Trees
 	std::vector<CRTree*> vTrees;
 };

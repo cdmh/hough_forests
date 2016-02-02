@@ -53,8 +53,6 @@ static HoG hog;
 
 class CRPatch {
 public:
-    enum patch_positioning { RANDOM=1000, WOBBLY_GRID, DENSE_WOBBLY_GRID };
-
     CRPatch(CvRNG rng, int w, int h, int num_l) : rng(rng), width(w), height(h) { vLPatches.resize(num_l);}
 
     void add_patch(
@@ -75,21 +73,6 @@ public:
                         std::vector<CvPoint>         *vCenter = 0);
 
 
-    using patch_adder_t = std::function<void (std::vector<IplImage *> const &,
-                                              int,
-                                              int,
-                                              cv::Point const &,
-                                              std::vector<CvPoint> const &)>;
-
-	// Extract patches from feature channels, ignoring areas of low texture
-	void extract_patches_of_texture(std::vector<IplImage *>         const &vImg,
-                                    unsigned int                           n,
-                                    std::function<bool (cv::Rect const &)> patch_selector,
-                                    patch_positioning                      positioning,
-                                    std::vector<CvPoint>            const &vCenter,
-                                    patch_adder_t                          adder = {},
-                                    CvRect const                  * const  box   = nullptr);
-
 	// Extract features from image
 	static void extractFeatureChannels(IplImage *img, std::vector<IplImage*>& vImg);
 
@@ -105,10 +88,23 @@ public:
 	static void minfilt(IplImage *src, IplImage *dst, unsigned int width);
 
     // for template compatibility
-	CRPatch(CvRNG)                   { throw std::runtime_error("NOT IMPLEMENTED"); }
-    void training_data(CRPatch &&)   { throw std::runtime_error("NOT IMPLEMENTED"); }
-    void read(std::istream &)  const { throw std::runtime_error("NOT IMPLEMENTED"); }
-    void write(std::ostream &) const { throw std::runtime_error("NOT IMPLEMENTED"); }
+	CRPatch(CvRNG)                   { throw std::runtime_error("CRPatch::CRPatch(CvRNG) NOT IMPLEMENTED"); }
+    void read(std::istream &)  const { throw std::runtime_error("CRPatch::read() NOT IMPLEMENTED"); }
+    void write(std::ostream &) const { throw std::runtime_error("CRPatch::write() NOT IMPLEMENTED"); }
+
+
+    using patch_adder_t = std::function<void (std::vector<IplImage *> const &,
+                                              int,
+                                              int,
+                                              cv::Point const &,
+                                              std::vector<CvPoint> const &)>;
+	template<typename T>
+	void extract_patches_of_texture(std::vector<IplImage *>         const &,
+                                    T                               const &,
+                                    std::vector<CvPoint>            const &,
+                                    patch_adder_t                          = {},
+                                    CvRect const                  * const  = nullptr)
+    { throw std::runtime_error("CRPatch::extract_patches_of_texture() NOT IMPLEMENTED"); }
 
 	int const width          = -1;
 	int const height         = -1;
