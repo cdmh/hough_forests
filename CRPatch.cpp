@@ -91,7 +91,7 @@ void CRPatch::add_patch(
     int                            label,
     int                            src_index,
     cv::Point const               &pt,
-    std::vector<CvPoint>    const &vCenter)
+    std::vector<CvPoint>    const *vCenter)
 {
 	int const offx = width  / 2; 
 	int const offy = height / 2;
@@ -105,11 +105,11 @@ void CRPatch::add_patch(
 
 	if (label == LABEL_POSITIVE)
     {
-		pf.center.resize(vCenter.size());
-		for (unsigned int c = 0; c<vCenter.size(); ++c)
+		pf.center.resize(vCenter->size());
+		for (unsigned int c = 0; c<vCenter->size(); ++c)
         {
-			pf.center[c].x = pt.x + offx - vCenter[c].x;
-			pf.center[c].y = pt.y + offy - vCenter[c].y;
+			pf.center[c].x = pt.x + offx - (*vCenter)[c].x;
+			pf.center[c].y = pt.y + offy - (*vCenter)[c].y;
 		}
 	}
 
