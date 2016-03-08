@@ -91,7 +91,7 @@ void CRPatch::add_patch(
     int                            label,
     int                            src_index,
     cv::Point const               &pt,
-    std::vector<CvPoint>    const *vCenter)
+    std::vector<CvPoint>    const *vCenter, int)
 {
 	int const offx = width  / 2; 
 	int const offy = height / 2;

@@ -60,7 +60,7 @@ public:
         int                            label,
         int                            src_index,
         cv::Point const               &pt,
-        std::vector<CvPoint>    const *vCenter);
+        std::vector<CvPoint>    const *vCenter, int);
 
 	// Extract patches from image
 	void extractPatches(IplImage *img, unsigned int n, int label, CvRect const * const box = 0, std::vector<CvPoint>* vCenter = 0);

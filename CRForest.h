@@ -57,7 +57,7 @@ public:
 	void show(int w, int h) const {vTrees[0]->showLeaves(w,h);}
     void stats() const;
 
-    void CRForest::loadForest(std::ifstream &in)
+    void CRForest::loadForest(std::ifstream &in, unsigned=0)
     {
         // composite forest storage // CDMH
         size_t size;
