@@ -67,6 +67,11 @@ public:
 		    vTrees[i] = new CRTree(in);
     }
 
+    size_t const num_trees() const { return vTrees.size(); }
+
+    // for template compatibility
+    void set_feature_channels(std::vector<std::vector<IplImage *>> const &) {}
+    void for_each_positive_patch(std::function<void (PatchFeature const &pf)>) const {}
 
 	// Trees
 	std::vector<CRTree*> vTrees;

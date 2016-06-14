@@ -47,6 +47,9 @@ struct PatchFeature {
     // not assignable because of the const index
     PatchFeature &operator=(PatchFeature &&)      = delete;
     PatchFeature &operator=(PatchFeature const &) = delete;
+
+    // for template compatibility
+    void create_channel_patches(int, int, std::vector<IplImage *> const &) {}
 };
 
 static HoG hog; 
