@@ -14,7 +14,7 @@ namespace gall {
 namespace detail {
 
 template<typename T>
-bool const read(std::ifstream &in, T &value)
+bool const read(std::istream &in, T &value)
 {
     in.read(reinterpret_cast<char *>(&value), sizeof(value));
 
@@ -23,7 +23,7 @@ bool const read(std::ifstream &in, T &value)
 }
 
 template<typename T, typename ... Args>
-bool const read(std::ifstream &in, T &value, Args& ... args)
+bool const read(std::istream &in, T &value, Args& ... args)
 {
     return read(in, value)  &&  read(in, args...);
 }
@@ -58,7 +58,7 @@ CRTree::CRTree(const char* filename)
         cerr << "Could not read tree: " << filename << endl;
 }
 
-CRTree::CRTree(ifstream &in)
+CRTree::CRTree(istream &in)
 {
     load(in);
 }
@@ -96,10 +96,11 @@ void CRTree::stats() const
 
 /////////////////////// IO Function /////////////////////////////
 
-bool const CRTree::load(std::ifstream &in) {
+bool const CRTree::load(std::istream &in) {
 	int dummy;
 
-	if(in.is_open()) {
+	if(!!in)
+    {
         using detail::read;
 
 		// allocate memory for tree table

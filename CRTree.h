@@ -87,7 +87,7 @@ class CRTree {
 public:
 	// Constructors
 	explicit CRTree(const char* filename);
-    explicit CRTree(std::ifstream &in);
+    explicit CRTree(std::istream &in);
 	CRTree(int min_s, int max_d, size_t cp, CvRNG rng) : min_samples(min_s), max_depth(max_d), num_leaf(0), num_cp(cp), rng(rng) {
 		num_nodes = (int)pow(2.0,int(max_depth+1))-1;
 		// num_nodes x 7 matrix as vector
@@ -120,7 +120,7 @@ public:
     void stats() const;
 
 private: 
-    bool const load(std::ifstream &in);
+    bool const load(std::istream &in);
 
 	// Private functions for training
 	unsigned int grow(const std::vector<std::vector<const PatchFeature*> >& TrainSet, int node, unsigned int depth, int samples, float pnratio);
