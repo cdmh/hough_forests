@@ -49,7 +49,7 @@ struct PatchFeature {
     PatchFeature &operator=(PatchFeature const &) = delete;
 
     // for template compatibility
-    void create_channel_patches(int, int, std::vector<IplImage *> const &) {}
+    void create_channel_patches(int, int, int, std::vector<IplImage *> const &) {}
 };
 
 static HoG hog; 
