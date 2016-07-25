@@ -57,7 +57,11 @@ public:
 	void show(int w, int h) const {vTrees[0]->showLeaves(w,h);}
     void stats() const;
 
-    void CRForest::loadForest(std::istream &in, unsigned=0)
+    template<typename Stream>
+    void loadForest(Stream &) { throw std::logic_error("CRForest::loadForest() is only implemented for std::istream"); }
+
+    template<>
+    void loadForest(std::istream &in)
     {
         // composite forest storage // CDMH
         size_t size;
