@@ -52,16 +52,16 @@ public:
 	bool const trainForest(int min_s, int max_d, CvRNG rng, const CRPatch& TrData, int samples);
 
 	// IO functions
-	void saveForest(const char* filename, unsigned int offset = 0, int type = 0);
-	void saveForest(std::ofstream &out);
-	void show(int w, int h) const {vTrees[0]->showLeaves(w,h);}
-    void stats() const;
+	bool const  saveForest(std::string const &filename, unsigned int offset = 0, int type = 0);
+	bool const  saveForest(std::ofstream &out);
+	void        show(int w, int h) const {vTrees[0]->showLeaves(w,h);}
+    void        stats() const;
 
     template<typename Stream>
-    void loadForest(Stream &) { throw std::logic_error("CRForest::loadForest() is only implemented for std::istream"); }
+    void loadForest(size_t, size_t const, Stream &) { throw std::logic_error("CRForest::loadForest() is only implemented for std::istream"); }
 
     template<>
-    void loadForest(std::istream &in)
+    void loadForest(size_t, size_t const, std::istream &in)
     {
         // composite forest storage // CDMH
         size_t size;
@@ -118,30 +118,34 @@ inline bool const CRForest::trainForest(int min_s, int max_d, CvRNG rng, const C
 }
 
 // IO Functions
-inline void CRForest::saveForest(const char* filename, unsigned int offset, int type) {
+inline bool const CRForest::saveForest(std::string const &filename, unsigned int offset, int type) {
     if (type == 0)
     {
 	    char buffer[200];
 	    for(unsigned int i=0; i<vTrees.size(); ++i) {
-		    sprintf_s(buffer,"%s%03u.txt",filename,i+offset);
-		    vTrees[i]->saveTree(buffer);
+		    sprintf_s(buffer,"%s%03u.txt",filename.c_str(),i+offset);
+		    if (!vTrees[i]->saveTree(buffer))
+                return false;
 	    }
     }
     else if (type == 1  ||  type == 2)
     {
         std::ofstream out(filename, std::ios_base::out | std::ios::binary);
-        saveForest(out);
+        return saveForest(out);
     }
+    return true;
 }
 
-inline void CRForest::saveForest(std::ofstream &out)
+inline bool const CRForest::saveForest(std::ofstream &out)
 {
     // composite forest storage // CDMH
     size_t const size = vTrees.size();
     out.write((char const *)&size, sizeof(size));
 	for(unsigned int i=0; i<vTrees.size(); ++i) {
-		vTrees[i]->save(out);
+		if (!vTrees[i]->save(out))
+            return false;
 	}
+    return true;
 }
 
 inline void CRForest::stats() const
